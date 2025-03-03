@@ -4,7 +4,7 @@
 #include <Arduino.h>
 
 
-// Replace these with actual Atlas Scientific addresses.
+// Replace these with actual Atlas Scientific addresses
 #define DOSING_PUMP_ADDRESS_1 0x38  // Example address for Tank 1 dosing pump
 #define DOSING_PUMP_ADDRESS_2 0x39  // Example address for Tank 2 dosing pump
 #define PH_SENSOR_ADDRESS_1   0x63  // Example address for Tank 1 pH sensor
@@ -16,7 +16,7 @@
 #define LLS_LOW_PIN_02    4  // Tank 2 low level sensor pin
 #define LLS_HIGH_PIN_02   5  // Tank 2 high level sensor pin
 
-// for Tank 1
+// Tank 1
 float phSensorReadTank01();
 void doseAcidTank01();
 void controlTank01(void* parameters);
