@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <esp_timer.h>
 #include "electrodialysisControl.h"
 
 /*PUMP DIRECTIONS*/
@@ -16,6 +17,7 @@ int pH02Pin = 6;
 int acidPump1Pin = 7;
 int acidPump2Pin = 8;
 int pG02Pin = 9;
+int pG03Pin = 17;
 int dC01Pin = 10;
 int dC02Pin = 11;
 int dC03Pin = 12;
@@ -23,6 +25,38 @@ int cond02Pin = 13;
 int cond03Pin = 14;
 int lowLevelPin = 15;
 int highLevelPin = 16;
+
+struct pressureDevices{
+    int pumpPin;
+    int pGPin;
+};
+
+TimerHandle_t controlPress1Timer = NULL;
+TimerHandle_t controlPress2Timer = NULL;
+
+TaskHandle_t controlPress1Handle = NULL;
+TaskHandle_t controlPress2Handle = NULL;
+TaskHandle_t controlCellVoltageHandle = NULL;
+TaskHandle_t controlLLS05Handle = NULL;
+
+
+controlPress1Timer = xTimerCreate(
+    "Control Pressure1 Timer",
+    1000/portTICK_PERIOD_MS,
+    pdFALSE,
+    (void*)0,
+    startControlPress1
+);
+controlPress2Timer = xTimerCreate(
+    "Control Pressure2 Timer",
+    1000/portTICK_PERIOD_MS,
+    pdFALSE,
+    (void*)0,
+    startControlPress2
+);
+
+
+
 /* Using core 1 of ESP32 */
 #if CONFIG_FREERTOS_UNICORE
 static const BaseType_t app_cpu = 0;
@@ -33,10 +67,15 @@ static const BaseType_t app_cpu = 1;
 void controlElectrodialysis(void* parameters){
     //spawns the first task
     xTaskCreatePinnedToCore (controlPH02, "pH02 Monitoring", 2048, NULL, 1, NULL, app_cpu);
+    //Hardware interrupts for overvoltage conditions
+    attachInterrupt(dC01Pin, systemShutdown, HIGH);
+    attachInterrupt(dC02Pin, systemShutdown, HIGH);
+    attachInterrupt(dC03Pin, systemShutdown, HIGH);
 }
 
 void controlPH02(void* parameters){
     /*TODO: create timer based on user input to delay when controlPressure Starts*/
+    xTimerStart(controlPress1Timer, portMAX_DELAY);
     for(;;){
         pumpControl(pump1Pin, PUMP_ON);
 
@@ -58,11 +97,11 @@ void controlPH02(void* parameters){
 }
 
 void controlPressure(void* parameters){
-    /*TODO: create timer based on user input to delay when controlCellVoltage Starts*/
+    struct pressureDevices* pressDevices = (struct pressureDevices*) parameters;
     for(;;){
         /*TODO make the pump and the pg pins parameters*/
-        pumpControl(pump1Pin, PUMP_ON);
-        if (readPressure(pG02Pin) < (float)PRESSURE_LIMIT){
+        pumpControl(pressDevices->pumpPin, PUMP_ON);
+        if (readPressure(pressDevices->pGPin) < (float)PRESSURE_LIMIT){
             sendAlert("PG02 pressure is below 100");
         }
         vTaskDelay(60000/portTICK_PERIOD_MS);
@@ -70,6 +109,8 @@ void controlPressure(void* parameters){
 }
 
 void controlCellVoltage(void* parameters){
+    /*TODO: create timer based on user input to delay when the second pressure control loop Starts*/
+    xTimerStart(controlPress2Timer, portMAX_DELAY);
     for(;;){
         pumpControl(pump3Pin, PUMP_ON);
         pumpControl(pump4Pin, PUMP_ON);
@@ -94,15 +135,7 @@ void controlCellVoltage(void* parameters){
     }
 
 }
-void controlElectrochemicalVoltage(void* parameters){
-    for(;;){
-        if (readVoltage(dC03Pin) > SHUTDOWN_VOLTAGE){
-            sendAlert("DC03 Voltage is above the threshold");
-            /*TODO Implement shutdown interrupt*/
-        }
-    }
-    vTaskDelay(60000/portTICK_PERIOD_MS);
-}
+
 
 void controlLLS05(void* parameters){
     for(;;){
@@ -114,6 +147,34 @@ void controlLLS05(void* parameters){
         }
         vTaskDelay(60000/portTICK_PERIOD_MS);
     }
+}
+
+//callback function when the timer expires
+void startControlPress1(TimerHandle_t controlPress1Timer){
+    struct pressureDevices pG02Devices = {
+        pump1Pin,
+        pG02Pin
+    };
+    xTaskCreatePinnedToCore (controlPressure, "Pressure Control", 2048, &pG02Devices, 1,
+         &controlPress1Handle, app_cpu);
+    xTaskCreatePinnedToCore (controlCellVoltage, "Cell Voltage Control", 2048, NULL, 1, 
+        &controlCellVoltageHandle, app_cpu);
+}
+
+//callback function when the timer expires
+void startControlPress2(TimerHandle_t controlPress2Timer){
+    struct pressureDevices pG05Devices = {
+        pump5Pin,
+        pG05Pin
+    };
+    xTaskCreatePinnedToCore (controlPressure, "Pressure Control", 2048, &pG05Devices, 1,
+         &controlPress2Handle, app_cpu);
+        xTaskCreatePinnedToCore (controlLLS05, "LLS05 Control", 2048, NULL, 1, 
+            &controlLLS05Handle, app_cpu);
+}
+
+void IRAM_ATTR systemShutdown(){
+    Serial.println("Overvoltage condition! System shutdown");
 }
 
 

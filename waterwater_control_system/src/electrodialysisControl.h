@@ -9,6 +9,9 @@ void controlPressure(void* parameters);
 void controlCellVoltage(void* parameters);
 void controlElectrochemicalVoltage(void* parameters);
 void controlLLS05(void* parameters);
+void startControlPressure(TimerHandle_t controlPressureTimer);
+void startControlPressure(TimerHandle_t controlPressureTimer);
+void IRAM_ATTR systemShutdown();
 
 /*TODO: make these functions global so they can be called by the different modules*/
 void pumpControl(int pumpPin, int direction);
