@@ -31,31 +31,13 @@ struct pressureDevices{
     int pGPin;
 };
 
-TimerHandle_t controlPress1Timer = NULL;
-TimerHandle_t controlPress2Timer = NULL;
+TimerHandle_t controlPress1Timer;
+TimerHandle_t controlPress2Timer;
 
 TaskHandle_t controlPress1Handle = NULL;
 TaskHandle_t controlPress2Handle = NULL;
 TaskHandle_t controlCellVoltageHandle = NULL;
 TaskHandle_t controlLLS05Handle = NULL;
-
-
-controlPress1Timer = xTimerCreate(
-    "Control Pressure1 Timer",
-    1000/portTICK_PERIOD_MS,
-    pdFALSE,
-    (void*)0,
-    startControlPress1
-);
-controlPress2Timer = xTimerCreate(
-    "Control Pressure2 Timer",
-    1000/portTICK_PERIOD_MS,
-    pdFALSE,
-    (void*)0,
-    startControlPress2
-);
-
-
 
 /* Using core 1 of ESP32 */
 #if CONFIG_FREERTOS_UNICORE
@@ -64,6 +46,34 @@ static const BaseType_t app_cpu = 0;
 static const BaseType_t app_cpu = 1;
 #endif
 
+//callback function when the timer expires
+void startControlPress1(TimerHandle_t controlPress1Timer){
+    struct pressureDevices pG02Devices = {
+        pump1Pin,
+        pG02Pin
+    };
+    xTaskCreatePinnedToCore (controlPressure, "Pressure Control", 2048, &pG02Devices, 1,
+         &controlPress1Handle, app_cpu);
+    xTaskCreatePinnedToCore (controlCellVoltage, "Cell Voltage Control", 2048, NULL, 1, 
+        &controlCellVoltageHandle, app_cpu);
+}
+
+//callback function when the timer expires
+void startControlPress2(TimerHandle_t controlPress2Timer){
+    struct pressureDevices pG05Devices = {
+        pump5Pin,
+        pG03Pin
+    };
+    xTaskCreatePinnedToCore (controlPressure, "Pressure Control", 2048, &pG05Devices, 1,
+         &controlPress2Handle, app_cpu);
+        xTaskCreatePinnedToCore (controlLLS05, "LLS05 Control", 2048, NULL, 1, 
+            &controlLLS05Handle, app_cpu);
+}
+
+
+
+
+
 void controlElectrodialysis(void* parameters){
     //spawns the first task
     xTaskCreatePinnedToCore (controlPH02, "pH02 Monitoring", 2048, NULL, 1, NULL, app_cpu);
@@ -71,6 +81,23 @@ void controlElectrodialysis(void* parameters){
     attachInterrupt(dC01Pin, systemShutdown, HIGH);
     attachInterrupt(dC02Pin, systemShutdown, HIGH);
     attachInterrupt(dC03Pin, systemShutdown, HIGH);
+
+    //creates the timers
+    controlPress1Timer = xTimerCreate(
+        "Control Pressure1 Timer",
+        1000/portTICK_PERIOD_MS,
+        pdFALSE,
+        (void*)0,
+        startControlPress1
+    );
+    controlPress2Timer = xTimerCreate(
+        "Control Pressure2 Timer",
+        1000/portTICK_PERIOD_MS,
+        pdFALSE,
+        (void*)0,
+        startControlPress2
+    );
+    
 }
 
 void controlPH02(void* parameters){
@@ -147,30 +174,6 @@ void controlLLS05(void* parameters){
         }
         vTaskDelay(60000/portTICK_PERIOD_MS);
     }
-}
-
-//callback function when the timer expires
-void startControlPress1(TimerHandle_t controlPress1Timer){
-    struct pressureDevices pG02Devices = {
-        pump1Pin,
-        pG02Pin
-    };
-    xTaskCreatePinnedToCore (controlPressure, "Pressure Control", 2048, &pG02Devices, 1,
-         &controlPress1Handle, app_cpu);
-    xTaskCreatePinnedToCore (controlCellVoltage, "Cell Voltage Control", 2048, NULL, 1, 
-        &controlCellVoltageHandle, app_cpu);
-}
-
-//callback function when the timer expires
-void startControlPress2(TimerHandle_t controlPress2Timer){
-    struct pressureDevices pG05Devices = {
-        pump5Pin,
-        pG05Pin
-    };
-    xTaskCreatePinnedToCore (controlPressure, "Pressure Control", 2048, &pG05Devices, 1,
-         &controlPress2Handle, app_cpu);
-        xTaskCreatePinnedToCore (controlLLS05, "LLS05 Control", 2048, NULL, 1, 
-            &controlLLS05Handle, app_cpu);
 }
 
 void IRAM_ATTR systemShutdown(){
