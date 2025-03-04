@@ -18,8 +18,7 @@ void pumpControl(int pumpPin, int direction);
 float readPH(int sensorPin);
 void acidPumpControl(int acidPumpPin, int direction);
 void sendAlert(const char* message);
-float readPressure(int sensorPin);
+float readSensor(int sensorPin);
 float readVoltage(int sensorPin);
-float readConductivity(int sensorPin);
 int readLiquidLevel(int sensorPin);
 #endif

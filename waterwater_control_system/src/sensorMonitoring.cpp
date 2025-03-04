@@ -69,7 +69,7 @@ void sensorMonitoringTask(void* parameters) {
         vTaskDelay(1000 / portTICK_PERIOD_MS);
 
         // Retrieve sensor readings
-        String ph_t06    = pHSensor_Tank06.get_reading();
+        String ph_t06    = pHSensor_Tank06.get_lreading();
         String ph_t07    = pHSensor_Tank07.get_reading();
         String ph_ec1    = pHSensor_EC1.get_reading();
         String ph_ec2    = pHSensor_EC2.get_reading();
