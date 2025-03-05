@@ -1,4 +1,4 @@
-#include <Arduino.h>
+#include "Arduino.h"
 #include <esp_timer.h>
 #include <Ezo_i2c.h>
 #include <Wire.h>
@@ -84,7 +84,7 @@ void controlElectrodialysis(void* parameters){
     pG03Sensor.send_read_cmd();
     cond02Sensor.send_read_cmd();
     cond03Sensor.send_read_cmd();
-    
+
     //Hardware interrupts for overvoltage conditions
     attachInterrupt(dC01Pin, systemShutdown, HIGH);
     attachInterrupt(dC02Pin, systemShutdown, HIGH);
@@ -164,4 +164,4 @@ int readLiquidLevel(int gpioPin){
     return digitalRead(gpioPin);
 }
 
-
+/*TODO: Control peristaltic pumps with Modbus-rtu */
