@@ -16,7 +16,99 @@
       "id": "lcd2",
       "top": 73.6,
       "left": 188,
-      "attrs": { "pins": "i2c" }
+      "attrs": { "pins": "i2c", "i2cAddress": "0x28" }
+    },
+    {
+      "type": "wokwi-lcd1602",
+      "id": "lcd3",
+      "top": 227.2,
+      "left": 188,
+      "attrs": { "pins": "i2c", "i2cAddress": "0x10" }
+    },
+    {
+      "type": "wokwi-text",
+      "id": "text1",
+      "top": -19.2,
+      "left": 508.8,
+      "attrs": { "text": "Tank 1\n" }
+    },
+    {
+      "type": "wokwi-text",
+      "id": "text2",
+      "top": 124.8,
+      "left": 508.8,
+      "attrs": { "text": "Sensor Monitoring\n" }
+    },
+    {
+      "type": "wokwi-text",
+      "id": "text3",
+      "top": 297.6,
+      "left": 508.8,
+      "attrs": { "text": "Tank02 pH and PG02" }
+    },
+    {
+      "type": "wokwi-lcd1602",
+      "id": "lcd4",
+      "top": 380.8,
+      "left": 188,
+      "attrs": { "pins": "i2c", "i2cAddress": "0x11" }
+    },
+    {
+      "type": "wokwi-text",
+      "id": "text4",
+      "top": 441.6,
+      "left": 518.4,
+      "attrs": { "text": "Electrodialysis cell 1" }
+    },
+    {
+      "type": "wokwi-lcd1602",
+      "id": "lcd5",
+      "top": 534.4,
+      "left": 188,
+      "attrs": { "pins": "i2c", "i2cAddress": "0x12" }
+    },
+    {
+      "type": "wokwi-text",
+      "id": "text5",
+      "top": 585.6,
+      "left": 508.8,
+      "attrs": { "text": "Electrodialysis cell 2" }
+    },
+    { "type": "wokwi-lcd1602", "id": "lcd6", "top": 688, "left": 188, "attrs": { "pins": "i2c" ,"i2cAddress": "0x13" } },
+    {
+      "type": "wokwi-text",
+      "id": "text6",
+      "top": 748.8,
+      "left": 518.4,
+      "attrs": { "text": "PG03 and DC03" }
+    },
+    {
+      "type": "wokwi-lcd1602",
+      "id": "lcd7",
+      "top": 851.2,
+      "left": 188,
+      "attrs": { "pins": "i2c", "i2cAddress": "0x14" }
+    },
+    {
+      "type": "wokwi-text",
+      "id": "text7",
+      "top": 902.4,
+      "left": 518.4,
+      "attrs": { "text": "Tank 7" }
+    },
+    {
+      "type": "wokwi-lcd1602",
+      "id": "lcd8",
+      "top": 1004.8,
+      "left": 188,
+      "attrs": { "pins": "i2c", "i2cAddress": "0x15" }
+    },
+    {
+      "type": "wokwi-text",
+      "id": "text8",
+      "top": 1056,
+      "left": 518.4,
+      "attrs": { "text": "Tank 8" }
     }
   ],
   "connections": [
@@ -31,7 +123,31 @@
     [ "lcd2:GND", "esp:GND.1", "black", [ "h-19.2", "v-38.4" ] ],
     [ "lcd2:VCC", "esp:3V3", "red", [ "h-28.8", "v-38.3" ] ],
     [ "esp:D22", "lcd1:SCL", "purple", [ "h37.87", "v35.68" ] ],
-    [ "lcd1:SDA", "esp:D21", "green", [ "h0" ] ]
+    [ "lcd1:SDA", "esp:D21", "green", [ "h0" ] ],
+    [ "lcd3:VCC", "lcd2:VCC", "red", [ "h28.8", "v-153.6" ] ],
+    [ "lcd3:GND", "lcd2:GND", "black", [ "h38.4", "v-163.2" ] ],
+    [ "lcd3:SDA", "lcd2:SDA", "green", [ "h48", "v-153.4" ] ],
+    [ "lcd3:SCL", "lcd2:SCL", "purple", [ "h9.6", "v-153.3" ] ],
+    [ "lcd4:GND", "lcd3:GND", "black", [ "h19.2", "v-153.6" ] ],
+    [ "lcd4:VCC", "lcd3:VCC", "red", [ "h28.8", "v-153.5" ] ],
+    [ "lcd4:SDA", "lcd3:SDA", "green", [ "h48", "v-153.4" ] ],
+    [ "lcd3:SCL", "lcd4:SCL", "purple", [ "h9.6", "v153.9" ] ],
+    [ "lcd5:GND", "lcd4:GND", "black", [ "h19.2", "v-153.6" ] ],
+    [ "lcd4:VCC", "lcd5:VCC", "red", [ "h28.8", "v153.7" ] ],
+    [ "lcd5:SDA", "lcd4:SDA", "green", [ "h48", "v-153.4" ] ],
+    [ "lcd4:SCL", "lcd5:SCL", "purple", [ "h9.6", "v153.9" ] ],
+    [ "lcd6:GND", "lcd5:GND", "black", [ "h19.2", "v-153.6" ] ],
+    [ "lcd6:VCC", "lcd5:VCC", "red", [ "h28.8", "v-153.5" ] ],
+    [ "lcd6:SDA", "lcd5:SDA", "green", [ "h38.4", "v-153.4" ] ],
+    [ "lcd6:SCL", "lcd5:SCL", "purple", [ "h9.6", "v-153.3" ] ],
+    [ "lcd7:GND", "lcd6:GND", "black", [ "h19.2", "v-163.2" ] ],
+    [ "lcd7:VCC", "lcd6:VCC", "red", [ "h28.8", "v-163.1" ] ],
+    [ "lcd7:SDA", "lcd6:SDA", "green", [ "h38.4", "v-163" ] ],
+    [ "lcd7:SCL", "lcd6:SCL", "purple", [ "h9.6", "v-162.9" ] ],
+    [ "lcd8:GND", "lcd7:GND", "black", [ "h19.2", "v-163.2" ] ],
+    [ "lcd7:VCC", "lcd8:VCC", "red", [ "h28.8", "v153.7" ] ],
+    [ "lcd8:SDA", "lcd7:SDA", "green", [ "h38.4", "v-153.4" ] ],
+    [ "lcd7:SCL", "lcd8:SCL", "purple", [ "h9.6", "v153.9" ] ]
   ],
   "dependencies": {}
 }
