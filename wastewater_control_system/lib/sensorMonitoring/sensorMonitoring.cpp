@@ -35,7 +35,8 @@ Ezo_board turbiditySensor_EC1   = Ezo_board(TURBIDITY_SENSOR_ADDRESS_2, "TurbEC1
 Ezo_board turbiditySensor_EC2   = Ezo_board(TURBIDITY_SENSOR_ADDRESS_3, "TurbEC2");
 
 void sensorMonitoringTask(void* parameters) {
-    // Set sensor read delay (in ticks). Currently set as 5000ms 
+    // Set sensor read delay (in ticks). Currently set as 5000ms
+    Wire.begin();
     const TickType_t sensorDelay = pdMS_TO_TICKS(5000UL);
 
     while (true) {
@@ -69,47 +70,59 @@ void sensorMonitoringTask(void* parameters) {
         vTaskDelay(1000 / portTICK_PERIOD_MS);
 
         // Retrieve sensor readings
-        String ph_t06    = pHSensor_Tank06.get_lreading();
-        String ph_t07    = pHSensor_Tank07.get_reading();
-        String ph_ec1    = pHSensor_EC1.get_reading();
-        String ph_ec2    = pHSensor_EC2.get_reading();
+        float ph_t06    = pHSensor_Tank06.get_last_received_reading();
+        float ph_t07    = pHSensor_Tank07.get_last_received_reading();
+        float ph_ec1    = pHSensor_EC1.get_last_received_reading();
+        float ph_ec2    = pHSensor_EC2.get_last_received_reading();
 
-        String cond_ec1  = condSensor_EC1.get_reading();
-        String cond_ec2  = condSensor_EC2.get_reading();
-        String cond_t7   = condSensor_Tank7.get_reading();
-        String cond_t2   = condSensor_Tank2.get_reading();
+        float cond_ec1  = condSensor_EC1.get_last_received_reading();
+        float cond_ec2  = condSensor_EC2.get_last_received_reading();
+        float cond_t7   = condSensor_Tank7.get_last_received_reading();
+        float cond_t2   = condSensor_Tank2.get_last_received_reading();
 
-        String do_t01    = doSensor_Tank01.get_reading();
-        String do_t07    = doSensor_Tank07.get_reading();
+        float do_t01    = doSensor_Tank01.get_last_received_reading();
+        float do_t07    = doSensor_Tank07.get_last_received_reading();
 
-        String temp_t01  = tempSensor_Tank01.get_reading();
+        float temp_t01  = tempSensor_Tank01.get_last_received_reading();
 
-        String turb_t01 = turbiditySensor_Tank01.get_reading();
-        String turbEC1   = turbiditySensor_EC1.get_reading();
-        String turbEC2   = turbiditySensor_EC2.get_reading();
+        float turb_t01 = turbiditySensor_Tank01.get_last_received_reading();
+        float turbEC1   = turbiditySensor_EC1.get_last_received_reading();
+        float turbEC2   = turbiditySensor_EC2.get_last_received_reading();
 
         // Read digital LLS sensors
         // ADD IN HERE FOR TANK 6, 7, 8
 
         // Data as CSV string for LABVIEW to parse
-        Serial.print("pH_T06,"); Serial.print(ph_t06); Serial.print(",");
-        Serial.print("pH_T07,"); Serial.print(ph_t07); Serial.print(",");
-        Serial.print("pH_EC1,"); Serial.print(ph_ec1); Serial.print(",");
+        char ph_t06_arr[5];char ph_t07_arr[5];char ph_ec1_arr[5];char ph_ec2_arr[5];
+        char cond_ec1_arr[5];char cond_t7_arr[5];char cond_t2_arr[5];char do_t01_arr[5];
+        char do_t07_arr[5]; char temp_t01_arr[5]; char turb_t01_arr[5]; 
+        char turbEC1_arr[5]; char turbEC2_arr[5]; char cond_ec2_arr[5];
+        sprintf(ph_t06_arr,"%.2f", ph_t06); sprintf(ph_t07_arr,"%.2f", ph_t07);
+        sprintf(ph_ec1_arr,"%.2f", ph_ec1);sprintf(ph_ec2_arr,"%.2f", ph_ec2);
+        sprintf(cond_ec1_arr,"%.2f", cond_ec1);sprintf(cond_t2_arr,"%.2f", cond_t2);
+        sprintf(cond_t7_arr,"%.2f", cond_t7);  sprintf(do_t01_arr,"%.2f", do_t01);
+        sprintf(do_t07_arr,"%.2f", do_t07); sprintf(temp_t01_arr,"%.2f", temp_t01);
+        sprintf(turb_t01_arr,"%.2f", turb_t01);sprintf(turbEC1_arr,"%.2f", turbEC1);
+        sprintf(turbEC2_arr,"%.2f", turbEC2); sprintf(cond_ec2_arr,"%.2f", cond_ec2);
+
+        Serial.print("pH_T06,"); Serial.print(ph_t06_arr); Serial.print(",");
+        Serial.print("pH_T07,"); Serial.print(ph_t07_arr); Serial.print(",");
+        Serial.print("pH_EC1,"); Serial.print(ph_ec1_arr); Serial.print(",");
         Serial.print("pH_EC2,"); Serial.print(ph_ec2); Serial.print(",");
 
-        Serial.print("Cond_EC1,"); Serial.print(cond_ec1); Serial.print(",");
-        Serial.print("Cond_EC2,"); Serial.print(cond_ec2); Serial.print(",");
-        Serial.print("Cond_T7,"); Serial.print(cond_t7); Serial.print(",");
-        Serial.print("Cond_T2,"); Serial.print(cond_t2); Serial.print(",");
+        Serial.print("Cond_EC1,"); Serial.print(cond_ec1_arr); Serial.print(",");
+        Serial.print("Cond_EC2,"); Serial.print(cond_ec2_arr); Serial.print(",");
+        Serial.print("Cond_T7,"); Serial.print(cond_t7_arr); Serial.print(",");
+        Serial.print("Cond_T2,"); Serial.print(cond_t2_arr); Serial.print(",");
 
-        Serial.print("DO_T01,"); Serial.print(do_t01); Serial.print(",");
-        Serial.print("DO_T07,"); Serial.print(do_t07); Serial.print(",");
+        Serial.print("DO_T01,"); Serial.print(do_t01_arr); Serial.print(",");
+        Serial.print("DO_T07,"); Serial.print(do_t07_arr); Serial.print(",");
 
-        Serial.print("Temp_T01,"); Serial.print(temp_t01); Serial.print(",");
+        Serial.print("Temp_T01,"); Serial.print(temp_t01_arr); Serial.print(",");
         
-        Serial.print("T_T01,"); Serial.print(turb_t01);
-        Serial.print("T_EC1,"); Serial.print(turbEC1);
-        Serial.print("T_EC2,"); Serial.println(turbEC2);
+        Serial.print("T_T01,"); Serial.print(turb_t01_arr);
+        Serial.print("T_EC1,"); Serial.print(turbEC1_arr);
+        Serial.print("T_EC2,"); Serial.println(turbEC2_arr);
 
         vTaskDelay(sensorDelay);
     }
