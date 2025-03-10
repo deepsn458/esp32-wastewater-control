@@ -14,11 +14,12 @@ void startControlPress2(TimerHandle_t controlPress2Timer);
 void IRAM_ATTR systemShutdown();
 
 /*TODO: make these functions global so they can be called by the different modules*/
-void pumpControl(int pumpPin, int direction);
+void setupPumps();
+void pumpControl(uint16_t pumpAddr, int direction);
 float readPH(int sensorPin);
 void acidPumpControl(int acidPumpPin, int direction);
 void sendAlert(const char* message);
-float readSensor(int sensorPin);
+float readSensor(Ezo_board sensor);
 float readVoltage(int sensorPin);
 int readLiquidLevel(int sensorPin);
 #endif

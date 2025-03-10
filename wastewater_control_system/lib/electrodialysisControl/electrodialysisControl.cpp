@@ -2,6 +2,7 @@
 #include <esp_timer.h>
 #include <Ezo_i2c.h>
 #include <Wire.h>
+#include <DFRobot_RTU.h>
 #include "electrodialysisControl.h"
 
 /*PUMP DIRECTIONS*/
@@ -9,18 +10,17 @@ const int PUMP_ON = 1;
 const int PUMP_OFF =0;
 const int PRESSURE_LIMIT = 100;
 const int SHUTDOWN_VOLTAGE = 75;
-/*TODO: Import the different pins corresponding to the different sensors/actuators*/
-Ezo_board pG02Sensor = Ezo_board(PG02_SENSOR_ADDRESS, "pG02");
-Ezo_board pG03Sensor = Ezo_board(PG03_SENSOR_ADDRESS, "pG03");
 
-Ezo_board cond02Sensor = Ezo_board(Cond02_SENSOR_ADDRESS, "cond02");
-Ezo_board cond03Sensor = Ezo_board(Cond03_SENSOR_ADDRESS, "cond03");
+//UART Serial Pins
+#define RXD2 16
+#define TXD2 17
+/*TODO set each kamoer pump a unique Modbus Address using the rotary encoder*/
+#define PUMP01_ADDR ((uint16_t)0xC0)
+#define PUMP02_ADDR ((uint16_t)0xC1)
+#define PUMP03_ADDR ((uint16_t)0xC2)
+#define PUMP04_ADDR ((uint16_t)0xC3)
+#define PUMP05_ADDR ((uint16_t)0xC4)
 
-const int pump1Pin = 1;
-const int pump2Pin = 2;
-const int pump3Pin =  3;
-const int pump4Pin = 4;
-const int pump5Pin = 5;
 const int pH02Pin = 6;
 const int acidPump1Pin = 7;
 const int acidPump2Pin = 8;
@@ -34,10 +34,21 @@ const int cond03Pin = 14;
 const int lowLevelPin = 15;
 const int highLevelPin = 16;
 
-struct pressureDevices{
-    int pumpPin;
+//sets up the serial port for RS485 Communication
+HardwareSerial rs485Serial(2);
+
+//creates modbus object for rs485 communication
+DFRobot_RTU modbus(&rs485Serial);
+/*TODO: Assign each sensors a unique I2C Address*/
+Ezo_board pG02Sensor = Ezo_board(PG02_SENSOR_ADDRESS, "pG02");
+Ezo_board pG03Sensor = Ezo_board(PG03_SENSOR_ADDRESS, "pG03");
+
+Ezo_board cond02Sensor = Ezo_board(Cond02_SENSOR_ADDRESS, "cond02");
+Ezo_board cond03Sensor = Ezo_board(Cond03_SENSOR_ADDRESS, "cond03");
+typedef struct pressureDevices{
+    uint16_t pumpAddr;
     Ezo_board pGSensor;
-};
+} pressureDevices;
 
 TimerHandle_t controlPress1Timer;
 TimerHandle_t controlPress2Timer;
@@ -56,8 +67,8 @@ static const BaseType_t app_cpu = 1;
 
 //callback function when the timer expires
 void startControlPress1(TimerHandle_t controlPress1Timer){
-    struct pressureDevices pG02Devices = {
-        pump1Pin,
+    pressureDevices pG02Devices = {
+        PUMP01_ADDR,
         pG02Sensor
     };
     xTaskCreatePinnedToCore (controlPressure, "Pressure Control", 2048, &pG02Devices, 1,
@@ -68,8 +79,8 @@ void startControlPress1(TimerHandle_t controlPress1Timer){
 
 //callback function when the timer expires
 void startControlPress2(TimerHandle_t controlPress2Timer){
-    struct pressureDevices pG05Devices = {
-        pump5Pin,
+    pressureDevices pG05Devices = {
+        PUMP05_ADDR,
         pG03Sensor
     };
     xTaskCreatePinnedToCore (controlPressure, "Pressure Control", 2048, &pG05Devices, 1,
@@ -78,7 +89,10 @@ void startControlPress2(TimerHandle_t controlPress2Timer){
             &controlLLS05Handle, app_cpu);
 }
 void controlElectrodialysis(void* parameters){
-
+    
+    rs485Serial.begin(9600, SERIAL_8N1, RXD2, TXD2);
+    //sets up the RS485 Communication with the pumps
+    setupPumps();
     //sets up the sensors
     pG02Sensor.send_read_cmd();
     pG03Sensor.send_read_cmd();
@@ -111,10 +125,10 @@ void controlElectrodialysis(void* parameters){
 }
 
 void controlPressure(void* parameters){
-    struct pressureDevices* pressDevices = (struct pressureDevices*) parameters;
+    pressureDevices* pressDevices = (pressureDevices*) parameters;
     for(;;){
         /*TODO make the pump and the pg pins parameters*/
-        pumpControl(pressDevices->pumpPin, PUMP_ON);
+        pumpControl(pressDevices->pumpAddr, PUMP_ON);
         if (readSensor(pressDevices->pGSensor) < (float)PRESSURE_LIMIT){
             sendAlert("PG02 pressure is below 100");
         }
@@ -126,8 +140,8 @@ void controlCellVoltage(void* parameters){
     /*TODO: create timer based on user input to delay when the second pressure control loop Starts*/
     xTimerStart(controlPress2Timer, portMAX_DELAY);
     for(;;){
-        pumpControl(pump3Pin, PUMP_ON);
-        pumpControl(pump4Pin, PUMP_ON);
+        pumpControl(PUMP03_ADDR, PUMP_ON);
+        pumpControl(PUMP04_ADDR, PUMP_ON);
         Serial.println("Turning on UV Lamp");
     
         if (readSensor(cond02Sensor)< 23){
@@ -165,3 +179,23 @@ int readLiquidLevel(int gpioPin){
 }
 
 /*TODO: Control peristaltic pumps with Modbus-rtu */
+void setupPumps(){
+    modbus.writeCoilsRegister(PUMP01_ADDR, 0x1004, 1);
+    modbus.writeCoilsRegister(PUMP02_ADDR, 0x1004, 1);
+    modbus.writeCoilsRegister(PUMP03_ADDR, 0x1004, 1);
+    modbus.writeCoilsRegister(PUMP04_ADDR, 0x1004, 1);
+    modbus.writeCoilsRegister(PUMP05_ADDR, 0x1004, 1);
+}
+
+void pumpControl(uint16_t pumpAddr, int direction){
+
+    //turns pump on or off
+    modbus.writeCoilsRegister(pumpAddr, 0x1001,PUMP_ON);
+    delay(50);
+
+    //sets the speed of the pump to 100.0rpm for now
+    modbus.writeHoldingRegister(pumpAddr,0x3001,0x42C8);
+    delay(50);
+    modbus.writeHoldingRegister(pumpAddr,0x3002, 0x0000);
+    delay(50);
+}

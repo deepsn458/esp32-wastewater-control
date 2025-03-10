@@ -57,7 +57,7 @@ void doseAcidTank02() {
 
 // Tank 1 Control
 void controlTank01(void* parameters){
-    xTaskCreatePinnedToCore(controlPH01, "pH01 Control", 2048, NULL, 1, &pH01Control_handle, app_cpu)
+    xTaskCreatePinnedToCore(controlPH01, "pH01 Control", 2048, NULL, 1, &pH01Control_handle, app_cpu);
     xTaskCreatePinnedToCore (controlLLS01, "LLS01 Control", 2048, NULL, 1, &LLS01Control_handle, app_cpu);
     
     
@@ -169,4 +169,5 @@ void controlLLS02(void* parameters) {
         
         vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
+}
 }
