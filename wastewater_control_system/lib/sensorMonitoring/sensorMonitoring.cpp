@@ -68,6 +68,28 @@ void sensorMonitoringTask(void* parameters) {
 
         // Wait for sensors to process the command (might need to adjust)
         vTaskDelay(1000 / portTICK_PERIOD_MS);
+        pHSensor_Tank06.receive_read_cmd();
+        pHSensor_Tank07.receive_read_cmd();
+        pHSensor_EC1.receive_read_cmd();
+        pHSensor_EC2.receive_read_cmd();
+
+        // Conductivity sensors:
+        condSensor_EC1.receive_read_cmd();
+        condSensor_EC2.receive_read_cmd();
+        condSensor_Tank7.receive_read_cmd();
+        condSensor_Tank2.receive_read_cmd();
+
+        // Dissolved Oxygen sensors:
+        doSensor_Tank01.receive_read_cmd();
+        doSensor_Tank07.receive_read_cmd();
+
+        // Temperature sensor:
+        tempSensor_Tank01.receive_read_cmd();
+        
+        // Turbidity sensors:
+        turbiditySensor_Tank01.receive_read_cmd();
+        turbiditySensor_EC1.receive_read_cmd();
+        turbiditySensor_EC2.receive_read_cmd();
 
         // Retrieve sensor readings
         float ph_t06    = pHSensor_Tank06.get_last_received_reading();
