@@ -18,8 +18,8 @@ TaskHandle_t pH02Control_handle = NULL;
 TaskHandle_t LLS02Control_handle = NULL;
 
 // Create an instance of the dosing pumps
-Ezo_board dosingPump_Tank01 = Ezo_board(DOSING_PUMP_ADDRESS_1, "PMP1");
-Ezo_board dosingPump_Tank02 = Ezo_board(DOSING_PUMP_ADDRESS_2, "PMP2");
+Ezo_board dosingPumpTank01 = Ezo_board(DOSING_PUMP_ADDRESS_1, "PMP1");
+Ezo_board dosingPumpTank02 = Ezo_board(DOSING_PUMP_ADDRESS_2, "PMP2");
 
 // Create an instance of the sensors
 Ezo_board pHSensor_Tank01 = Ezo_board(PH_SENSOR_ADDRESS_1, "pH1");
@@ -31,19 +31,20 @@ float phSensorReadTank01() {
     // Wait for the sensor to process the command.
     vTaskDelay(1000 / portTICK_PERIOD_MS);
     // Assume get_reading() returns a String with the sensor's response.
-    String reading = pHSensor_Tank01.get_reading();
-    return reading.toFloat();
+    pHSensor_Tank01.receive_read_cmd();
+    return(pHSensor_Tank01.get_last_received_reading());
 }
 
 float phSensorReadTank02() {
     pHSensor_Tank02.send_read_cmd();
     vTaskDelay(1000 / portTICK_PERIOD_MS);
-    String reading = pHSensor_Tank02.get_reading();
-    return reading.toFloat();
+    pHSensor_Tank02.receive_read_cmd();
+    return(pHSensor_Tank02.get_last_received_reading());
 }
 
 // Dosing Functions
 void doseAcidTank01() {
+    
     String command = "d,10"; // Change dosing volume as needed, units is in mL
     dosingPumpTank01.send_cmd(command);
     Serial.println("Acid dosing");
@@ -51,7 +52,7 @@ void doseAcidTank01() {
 
 void doseAcidTank02() {
     String command = "d,10";  // Change dosing volume as needed, units is in mL
-    dosingPump_Tank02.send_cmd(command);
+    dosingPumpTank02.send_cmd(command);
     Serial.println("Tank 2: Acid dosing command sent.");
 }
 

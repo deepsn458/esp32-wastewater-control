@@ -21,11 +21,6 @@ const int SHUTDOWN_VOLTAGE = 75;
 #define PUMP04_ADDR ((uint16_t)0xC3)
 #define PUMP05_ADDR ((uint16_t)0xC4)
 
-const int pH02Pin = 6;
-const int acidPump1Pin = 7;
-const int acidPump2Pin = 8;
-const int pG02Pin = 9;
-const int pG03Pin = 17;
 const int dC01Pin = 10;
 const int dC02Pin = 11;
 const int dC03Pin = 12;
@@ -193,8 +188,8 @@ void pumpControl(uint16_t pumpAddr, int direction){
     modbus.writeCoilsRegister(pumpAddr, 0x1001,PUMP_ON);
     delay(50);
 
-    //sets the speed of the pump to 100.0rpm for now
-    modbus.writeHoldingRegister(pumpAddr,0x3001,0x42C8);
+    //sets the speed of the pump to 400.0rpm for now
+    modbus.writeHoldingRegister(pumpAddr,0x3001,0x43C8);
     delay(50);
     modbus.writeHoldingRegister(pumpAddr,0x3002, 0x0000);
     delay(50);
