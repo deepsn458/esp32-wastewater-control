@@ -24,25 +24,31 @@ DFRobot_RTU modbus(&rs485Serial);
 
 
 void controlPumps(void* parameters){
+    Serial.begin(115200);
     rs485Serial.begin(9600, SERIAL_8N1, RXD2, TXD2);
 
     //sets up the MODBUS RTU communication for the pumps
     modbus.writeCoilsRegister(PUMP01_ADDR, 0x1004, 1);
-    modbus.writeCoilsRegister(PUMP02_ADDR, 0x1004, 1);
-    modbus.writeCoilsRegister(PUMP03_ADDR, 0x1004, 1);
-    modbus.writeCoilsRegister(PUMP04_ADDR, 0x1004, 1);
-    modbus.writeCoilsRegister(PUMP05_ADDR, 0x1004, 1);
+    //Serial.println(modbus.readCoilsRegister(PUMP01_ADDR,0x1004));
+    //modbus.writeCoilsRegister(PUMP02_ADDR, 0x1004, 1);
+    //modbus.writeCoilsRegister(PUMP03_ADDR, 0x1004, 1);
+    //modbus.writeCoilsRegister(PUMP04_ADDR, 0x1004, 1);
+    //modbus.writeCoilsRegister(PUMP05_ADDR, 0x1004, 1);
 
     for(;;){
         //turns pump on or off
     modbus.writeCoilsRegister(PUMP01_ADDR, 0x1001,PUMP_ON);
+    Serial.println("ye");
     delay(50);
 
     //sets the speed of the pump to 100.0rpm for now
-    modbus.writeHoldingRegister(PUMP01_ADDR,0x3001,0x42C8);
+    modbus.writeHoldingRegister(PUMP01_ADDR,0x3001,0x43C8);
     delay(50);
     modbus.writeHoldingRegister(PUMP01_ADDR,0x3002, 0x0000);
     delay(50);
+    delay(2000);
+    modbus.writeCoilsRegister(PUMP01_ADDR, 0x1001,PUMP_OFF);
+    //Serial.println(modbus.readHoldingRegister(PUMP01_ADDR,0x3002));
     vTaskDelay(1000/ portTICK_PERIOD_MS);
     }
 }

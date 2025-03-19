@@ -1,28 +1,24 @@
 #include <PubSubClient.h>
 #include <WiFi.h>
 #include <WiFiClientSecure.h>  // Use Secure Client for TLS
-#include <DHT.h>
 #include "dataLogging.h"
 
 WiFiClientSecure wifiClient;  // Use Secure Client
 PubSubClient client(wifiClient);
 
 // WiFi setup
-const char *ssid = "Wokwi-GUEST";
+const char *ssid = "Rice Visitor";
+//change if connecting to anetwork with a password
 const char *password = "";
+
 
 // MQTT Broker setup
 const char* mqtt_broker = "dcf9b2457e7b4ac58c487ffe3ed9af34.s1.eu.hivemq.cloud";
 const char* topic = "sensorData";
-const char* mqtt_username = "test1";
-const char* mqtt_password = "Test!123";
-const char* client_ID = "ESP32_client";
-const int mqtt_port = 8883;
+const char* client_ID  = "test1";
+const char* client_password = "Neodynium!123";
+const int mqtt_port = 1883;
 
-// DHT sensor setup
-const int DHTPIN = 12;
-const int DHTTYPE = 22;
-DHT dht(DHTPIN, DHTTYPE);
 
 // MQTT callback function
 void callback(char* topic, byte* payload, unsigned int length) {
@@ -38,7 +34,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
 // Reconnect function
 void reconnect() {
     while (!client.connected()) {
-        if (client.connect(client_ID, mqtt_username, mqtt_password)) {
+        if (client.connect(client_ID)) {
             Serial.println("MQTT Connected");
             client.subscribe(topic);
         } else {
@@ -53,37 +49,28 @@ void reconnect() {
 // Data logging task
 void dataLogging(void* parameters) {
     Serial.begin(115200);
-    dht.begin();
 
-    // Connecting to Wi-Fi
-    WiFi.begin(ssid, password);
+    // Connecting to Wi-Fi (add passwod field if necessat)
+    WiFi.begin(ssid);
     while (WiFi.status() != WL_CONNECTED) {
-        delay(500);
+        delay(1000);
         Serial.println("Connecting to WiFi..");
     }
-    Serial.println("Connected to Wi-Fi");
-
-    // Enable TLS (skip certificate validation)
-    wifiClient.setInsecure();
-
+    Serial.print("Connected to");Serial.println(WiFi.localIP());
     // Connect to the MQTT broker
+    
     client.setServer(mqtt_broker, mqtt_port);
     client.setCallback(callback);
-
+    
+    client.subscribe("new_topic");
     for (;;) {
         if (!client.connected()) {
             reconnect();
         }
         client.loop();  // Ensure MQTT stays connected
-
-        float temp = dht.readTemperature();
-        if (!isnan(temp)) {
-            String msgStr = "Temperature: " + String(temp);
-            client.publish(topic, msgStr.c_str());
-            Serial.println("Published: " + msgStr);
-        } else {
-            Serial.println("Failed to read temperature from DHT sensor!");
-        }
+        client.publish("new_topic","hi");
+        Serial.println("hi");
+        
 
         vTaskDelay(6000 / portTICK_PERIOD_MS);
     }
