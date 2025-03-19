@@ -9,6 +9,18 @@ static const BaseType_t app_cpu = 0;
 static const BaseType_t app_cpu = 1;
 #endif
 
+const int PH_SENSOR_ADDRESS_T06 = 101;
+const int PH_SENSOR_ADDRESS_T07 = 102;
+const int PH_SENSOR_ADDRESS_EC1 = 103;
+const int PH_SENSOR_ADDRESS_EC2 = 104;
+const int COND_SENSOR_ADDRESS_EC1 = 105;
+const int COND_SENSOR_ADDRESS_EC2 = 106;
+const int COND_SENSOR_ADDRESS_T7 = 110;
+const int COND_SENSOR_ADDRESS_T2 = 111;
+const int DO_SENSOR_ADDRESS_T01 = 107;
+const int DO_SENSOR_ADDRESS_T07 = 108;
+const int TEMP_SENSOR_ADDRESS_T01 = 109;
+
 // pH Sensors
 Ezo_board pHSensor_Tank06 = Ezo_board(PH_SENSOR_ADDRESS_T06, "pH_T06");
 Ezo_board pHSensor_Tank07 = Ezo_board(PH_SENSOR_ADDRESS_T07, "pH_T07");
@@ -30,9 +42,9 @@ Ezo_board tempSensor_Tank01 = Ezo_board(TEMP_SENSOR_ADDRESS_T01, "Temp_T01");
 
 
 // Turbidity Sensors
-Ezo_board turbiditySensor_Tank01 = Ezo_board(TURBIDITY_SENSOR_ADDRESS_1, "Turb1");
-Ezo_board turbiditySensor_EC1   = Ezo_board(TURBIDITY_SENSOR_ADDRESS_2, "TurbEC1");
-Ezo_board turbiditySensor_EC2   = Ezo_board(TURBIDITY_SENSOR_ADDRESS_3, "TurbEC2");
+Ezo_board turbiditySensor_Tank01 = Ezo_board(122, "Turb1");
+Ezo_board turbiditySensor_EC1   = Ezo_board(121, "TurbEC1");
+Ezo_board turbiditySensor_EC2   = Ezo_board(120, "TurbEC2");
 
 void sensorMonitoringTask(void* parameters) {
     // Set sensor read delay (in ticks). Currently set as 5000ms

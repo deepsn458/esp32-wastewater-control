@@ -5,6 +5,7 @@
 #include "electrodialysisControl.h"
 
 #define PRESSURE_LIMIT 100
+const int PG01_SENSOR_ADDRESS = 114;
 
 Ezo_board pG01Sensor = Ezo_board(PG01_SENSOR_ADDRESS, "pG01");
 /* Using core 1 of ESP32 */
@@ -45,6 +46,9 @@ void loop() {
 
 void controlPG01(void* parameters){
   while (true){
+    pG01Sensor.send_read_cmd();
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
+    pG01Sensor.receive_read_cmd();
     if (pG01Sensor.get_last_received_reading() > PRESSURE_LIMIT){
       Serial.println("PG01 is above 100psi");
     }

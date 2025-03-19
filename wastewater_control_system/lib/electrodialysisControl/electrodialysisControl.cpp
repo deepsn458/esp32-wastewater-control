@@ -21,13 +21,15 @@ const int SHUTDOWN_VOLTAGE = 75;
 #define PUMP04_ADDR ((uint16_t)0xC3)
 #define PUMP05_ADDR ((uint16_t)0xC4)
 
-const int dC01Pin = 10;
-const int dC02Pin = 11;
-const int dC03Pin = 12;
-const int cond02Pin = 13;
-const int cond03Pin = 14;
+const int dC01Pin = 12;
+const int dC02Pin = 13;
+const int dC03Pin = 14;
 const int lowLevelPin = 15;
 const int highLevelPin = 16;
+const int PG02_SENSOR_ADDRESS = 110;
+const int PG03_SENSOR_ADDRESS = 111;
+const int Cond02_SENSOR_ADDRESS = 112;
+const int Cond03_SENSOR_ADDRESS = 113;
 
 //sets up the serial port for RS485 Communication
 HardwareSerial rs485Serial(2);
