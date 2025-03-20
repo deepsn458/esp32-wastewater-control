@@ -8,7 +8,17 @@ static const BaseType_t app_cpu = 0;
 #else
 static const BaseType_t app_cpu = 1;
 #endif
+// Replace these with actual Atlas Scientific addresses
+#define DOSING_PUMP_ADDRESS_1 0x38  // Example address for Tank 1 dosing pump
+#define DOSING_PUMP_ADDRESS_2 0x39  // Example address for Tank 2 dosing pump
+#define PH_SENSOR_ADDRESS_1   0x63  // Example address for Tank 1 pH sensor
+#define PH_SENSOR_ADDRESS_2   0x65  // Example address for Tank 2 pH sensor
 
+// Liquid Level Sensor (LLS) Pins
+#define LLS_LOW_PIN       2  // Tank 1 low level sensor pin
+#define LLS_HIGH_PIN      3  // Tank 1 high level sensor pin
+#define LLS_LOW_PIN_02    4  // Tank 2 low level sensor pin
+#define LLS_HIGH_PIN_02   5  // Tank 2 high level sensor pin
 // Task handles for Tank 1
 TaskHandle_t pH01Control_handle = NULL;
 TaskHandle_t LLS01Control_handle = NULL;
@@ -23,7 +33,7 @@ Ezo_board dosingPumpTank02 = Ezo_board(DOSING_PUMP_ADDRESS_2, "PMP2");
 
 // Create an instance of the sensors
 Ezo_board pHSensor_Tank01 = Ezo_board(PH_SENSOR_ADDRESS_1, "pH1");
-Ezo_board pHSensor_Tank02 = Ezo_board(PH_SENSOR_ADDRESS_2, "pH2");
+Ezo_board pHSensor_Tank02 = Ezo_board(101, "pH2");
 
 // pH Sensor Reading Functions
 float phSensorReadTank01() {
@@ -45,20 +55,20 @@ float phSensorReadTank02() {
 // Dosing Functions
 void doseAcidTank01() {
     
-    String command = "d,10"; // Change dosing volume as needed, units is in mL
-    dosingPumpTank01.send_cmd(command);
+    // Change dosing volume as needed, units is in mL
+    dosingPumpTank01.send_cmd_with_num("d,", 10);
     Serial.println("Acid dosing");
 }
 
 void doseAcidTank02() {
-    String command = "d,10";  // Change dosing volume as needed, units is in mL
-    dosingPumpTank02.send_cmd(command);
+    // Change dosing volume as needed, units is in mL
+    dosingPumpTank02.send_cmd_with_num("d,", 10);
     Serial.println("Tank 2: Acid dosing command sent.");
 }
 
 // Tank 1 Control
 void controlTank01(void* parameters){
-    xTaskCreatePinnedToCore(controlPH01, "pH01 Control", 2048, NULL, 1, &pH01Control_handle, app_cpu);
+    xTaskCreatePinnedToCore(controlPH01, "pH01 Control", 2048, NULL, 3, &pH01Control_handle, app_cpu);
     xTaskCreatePinnedToCore (controlLLS01, "LLS01 Control", 2048, NULL, 1, &LLS01Control_handle, app_cpu);
     
     
@@ -81,8 +91,8 @@ void controlPH01(void* parameters) {
 
   // If pH is too high, check if it's time to dose again
     if (pHValue > 7) {
-      Serial.println("Tank 1 pH reading is %.2f\n", pHValue);
-      if ((xTaskGetTickCount() - lastDoseTick) >= doseDelayTicks) {
+      Serial.print("Tank 1 pH reading is"); Serial.println(pHValue);
+      if ((xTaskGetTickCount() - lastDoseTick) >= dosingDelayTicks) {
       
         doseAcidTank01();       
         lastDoseTick = xTaskGetTickCount();
@@ -90,11 +100,12 @@ void controlPH01(void* parameters) {
     
     else if (pHValue < 6) {
       // pH is too low, send an alert
-      Serial.println("Tank 1 pH reading is %.2f\n", pHValue);
+      Serial.print("Tank 1 pH reading is");Serial.println(pHValue);
     }
     
-    vTaskDelay(500 / portTICK_PERIOD_MS);
+    vTaskDelay(5000 / portTICK_PERIOD_MS);
   }
+}
 }
 
 
@@ -105,23 +116,24 @@ void controlLLS01(void* parameters) {
     while (true) {
 
         bool lowSensorActive01 = digitalRead(LLS_LOW_PIN);
-        bool highSensorActive = digitalRead(LLS_HIGH_PIN);
+        bool highSensorActive01 = digitalRead(LLS_HIGH_PIN);
         
         if (lowSensorActive01) {
             Serial.println("Water level in Tank 1 is LOW.");
         } 
-        else (highSensorActive01) {
+        else if(highSensorActive01) {
             Serial.println("Water level in Tank 1 is HIGH.");
         }
         
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
+        vTaskDelay(3000 / portTICK_PERIOD_MS);
     }
 }
 
 // TANK 2
 
 void controlTank02(void* parameters) {
-    xTaskCreatePinnedToCore(controlPH02, "pH02 Control", 2048, NULL, 1, &pH02Control_handle, app_cpu);
+    Serial.println(pHSensor_Tank02.get_address());
+    xTaskCreatePinnedToCore(controlPH02, "pH02 Control", 2048, NULL, 3, &pH02Control_handle, app_cpu);
     xTaskCreatePinnedToCore(controlLLS02, "LLS02 Control", 2048, NULL, 1, &LLS02Control_handle, app_cpu);
     
     while (true) {
@@ -132,25 +144,25 @@ void controlTank02(void* parameters) {
 
 
 void controlPH02(void* parameters) {
-    const uint32_t dosingDelayMinutes = 5; // Dosing delay in minutes
-    const TickType_t dosingDelayTicks = pdMS_TO_TICKS(dosingDelayMinutes * 60000UL);
+    const uint32_t dosingDelayMinutes = 1; // Dosing delay in minutes
+    const TickType_t dosingDelayTicks = pdMS_TO_TICKS(dosingDelayMinutes * 30000UL);
     TickType_t lastDoseTick = 0;
     
     while (true) {
         float pHValue = phSensorReadTank02();  
         
         if (pHValue > 7) {
-            Serial.println("Tank 2 pH reading is %.2f", pHValue);
+            Serial.print("Tank 2 pH reading is"); Serial.println(pHValue);
             if ((xTaskGetTickCount() - lastDoseTick) >= dosingDelayTicks) {
                 doseAcidTank02();
                 lastDoseTick = xTaskGetTickCount();
             }
         }
         else if (pHValue < 6) {
-            Serial.println("Tank 2 pH reading is %.2f", pHValue);
+            Serial.print("Tank 2 pH reading is"); Serial.println(pHValue);
         }
         
-        vTaskDelay(500 / portTICK_PERIOD_MS);
+        vTaskDelay(5000 / portTICK_PERIOD_MS);
     }
 }
 
@@ -165,10 +177,10 @@ void controlLLS02(void* parameters) {
         if (lowSensorActive02) {
             Serial.println("Water level in Tank 2 is LOW.");
         }
-        else (highSensorActive02) {
-            ("Water level in Tank 2 is HIGH.");
+        else if (highSensorActive02) {
+        Serial.println("Water level in Tank 2 is HIGH.");
         
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
+        vTaskDelay(3000 / portTICK_PERIOD_MS);
     }
 }
 }
