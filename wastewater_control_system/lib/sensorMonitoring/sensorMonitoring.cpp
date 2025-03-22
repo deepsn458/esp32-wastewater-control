@@ -119,9 +119,6 @@ void sensorMonitoringTask(void* parameters) {
 
         float temp_t01  = tempSensor_Tank01.get_last_received_reading();
 
-        float turb_t01 = turbiditySensor_Tank01.get_last_received_reading();
-        float turbEC1   = turbiditySensor_EC1.get_last_received_reading();
-        float turbEC2   = turbiditySensor_EC2.get_last_received_reading();
 
         // Read digital LLS sensors
         // ADD IN HERE FOR TANK 6, 7, 8
@@ -129,15 +126,13 @@ void sensorMonitoringTask(void* parameters) {
         // Data as CSV string for LABVIEW to parse
         char ph_t06_arr[5];char ph_t07_arr[5];char ph_ec1_arr[5];char ph_ec2_arr[5];
         char cond_ec1_arr[5];char cond_t7_arr[5];char cond_t2_arr[5];char do_t01_arr[5];
-        char do_t07_arr[5]; char temp_t01_arr[5]; char turb_t01_arr[5]; 
-        char turbEC1_arr[5]; char turbEC2_arr[5]; char cond_ec2_arr[5];
+        char do_t07_arr[5]; char temp_t01_arr[5]; char cond_ec2_arr[5];
         sprintf(ph_t06_arr,"%.2f", ph_t06); sprintf(ph_t07_arr,"%.2f", ph_t07);
         sprintf(ph_ec1_arr,"%.2f", ph_ec1);sprintf(ph_ec2_arr,"%.2f", ph_ec2);
         sprintf(cond_ec1_arr,"%.2f", cond_ec1);sprintf(cond_t2_arr,"%.2f", cond_t2);
         sprintf(cond_t7_arr,"%.2f", cond_t7);  sprintf(do_t01_arr,"%.2f", do_t01);
         sprintf(do_t07_arr,"%.2f", do_t07); sprintf(temp_t01_arr,"%.2f", temp_t01);
-        sprintf(turb_t01_arr,"%.2f", turb_t01);sprintf(turbEC1_arr,"%.2f", turbEC1);
-        sprintf(turbEC2_arr,"%.2f", turbEC2); sprintf(cond_ec2_arr,"%.2f", cond_ec2);
+         sprintf(cond_ec2_arr,"%.2f", cond_ec2);
 
         Serial.print("pH_T06,"); Serial.print(ph_t06_arr); Serial.print(",");
         Serial.print("pH_T07,"); Serial.print(ph_t07_arr); Serial.print(",");
@@ -153,11 +148,6 @@ void sensorMonitoringTask(void* parameters) {
         Serial.print("DO_T07,"); Serial.print(do_t07_arr); Serial.print(",");
 
         Serial.print("Temp_T01,"); Serial.print(temp_t01_arr); Serial.print(",");
-        
-        Serial.print("T_T01,"); Serial.print(turb_t01_arr);
-        Serial.print("T_EC1,"); Serial.print(turbEC1_arr);
-        Serial.print("T_EC2,"); Serial.println(turbEC2_arr);
-
         vTaskDelay(sensorDelay);
     }
 }

@@ -5,6 +5,13 @@
 #include <DFRobot_RTU.h>
 #include "electrodialysisControl.h"
 
+/* Using core 1 of ESP32 */
+#if CONFIG_FREERTOS_UNICORE
+static const BaseType_t app_cpu = 0;
+#else
+static const BaseType_t app_cpu = 1;
+#endif
+
 /*PUMP DIRECTIONS*/
 const int PUMP_ON = 1;
 const int PUMP_OFF =0;
@@ -50,27 +57,23 @@ typedef struct pressureDevices{
 TimerHandle_t controlPress1Timer;
 TimerHandle_t controlPress2Timer;
 
+
 TaskHandle_t controlPress1Handle = NULL;
 TaskHandle_t controlPress2Handle = NULL;
 TaskHandle_t controlCellVoltageHandle = NULL;
 TaskHandle_t controlLLS05Handle = NULL;
 
-/* Using core 1 of ESP32 */
-#if CONFIG_FREERTOS_UNICORE
-static const BaseType_t app_cpu = 0;
-#else
-static const BaseType_t app_cpu = 1;
-#endif
+
 
 //callback function when the timer expires
 void startControlPress1(TimerHandle_t controlPress1Timer){
     pressureDevices pG02Devices = {
-        PUMP01_ADDR,
+        PUMP02_ADDR,
         pG02Sensor
     };
-    xTaskCreatePinnedToCore (controlPressure, "Pressure Control", 2048, &pG02Devices, 1,
+    xTaskCreatePinnedToCore (controlPressure, "Pressure Control", 1024, &pG02Devices, 1,
          &controlPress1Handle, app_cpu);
-    xTaskCreatePinnedToCore (controlCellVoltage, "Cell Voltage Control", 2048, NULL, 1, 
+    xTaskCreatePinnedToCore (controlCellVoltage, "Cell Voltage Control", 1024, NULL, 1, 
         &controlCellVoltageHandle, app_cpu);
 }
 
@@ -80,21 +83,17 @@ void startControlPress2(TimerHandle_t controlPress2Timer){
         PUMP05_ADDR,
         pG03Sensor
     };
-    xTaskCreatePinnedToCore (controlPressure, "Pressure Control", 2048, &pG05Devices, 1,
+    xTaskCreatePinnedToCore (controlPressure, "Pressure Control", 1024, &pG05Devices, 1,
          &controlPress2Handle, app_cpu);
-        xTaskCreatePinnedToCore (controlLLS05, "LLS05 Control", 2048, NULL, 1, 
+        xTaskCreatePinnedToCore (controlLLS05, "LLS05 Control", 1024, NULL, 1, 
             &controlLLS05Handle, app_cpu);
 }
-void controlElectrodialysis(void* parameters){
+
+void controlElectrodialysis(){
     
     rs485Serial.begin(9600, SERIAL_8N1, RXD2, TXD2);
     //sets up the RS485 Communication with the pumps
     setupPumps();
-    //sets up the sensors
-    pG02Sensor.send_read_cmd();
-    pG03Sensor.send_read_cmd();
-    cond02Sensor.send_read_cmd();
-    cond03Sensor.send_read_cmd();
 
     //Hardware interrupts for overvoltage conditions
     attachInterrupt(dC01Pin, systemShutdown, HIGH);
@@ -104,6 +103,7 @@ void controlElectrodialysis(void* parameters){
     //creates the timers
     controlPress1Timer = xTimerCreate(
         "Control Pressure1 Timer",
+        //change to 1 minute
         1000/portTICK_PERIOD_MS,
         pdFALSE,
         (void*)0,
@@ -116,8 +116,13 @@ void controlElectrodialysis(void* parameters){
         (void*)0,
         startControlPress2
     );
+    
     //create timer based on user input to delay when controlPressure Starts
     xTimerStart(controlPress1Timer, portMAX_DELAY);
+
+    
+    //turn on pump 1
+    pumpControl(PUMP01_ADDR, PUMP_ON);
     
 }
 

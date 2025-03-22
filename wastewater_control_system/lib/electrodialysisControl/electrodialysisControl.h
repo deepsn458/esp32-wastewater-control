@@ -3,7 +3,7 @@
 
 /*TODO: test if these functions can be run within a while loop in the 
 electrodialysis task or if separate tasks need to be created*/
-void controlElectrodialysis(void* parameters);
+void controlElectrodialysis();
 void controlPH02(void* parameters);
 void controlPressure(void* parameters);
 void controlCellVoltage(void* parameters);
@@ -22,4 +22,6 @@ void sendAlert(const char* message);
 float readSensor(Ezo_board sensor);
 float readVoltage(int sensorPin);
 int readLiquidLevel(int sensorPin);
+
+
 #endif

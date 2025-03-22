@@ -19,9 +19,9 @@ static const BaseType_t app_cpu = 1;
 #define LLS_HIGH_PIN      3  // Tank 1 high level sensor pin
 #define LLS_LOW_PIN_02    4  // Tank 2 low level sensor pin
 #define LLS_HIGH_PIN_02   5  // Tank 2 high level sensor pin
-// Task handles for Tank 1
-TaskHandle_t pH01Control_handle = NULL;
-TaskHandle_t LLS01Control_handle = NULL;
+
+//timer handle for tank 2
+TimerHandle_t controlTank2Timer;
 
 // Task handles for Tank 2
 TaskHandle_t pH02Control_handle = NULL;
@@ -35,6 +35,12 @@ Ezo_board dosingPumpTank02 = Ezo_board(DOSING_PUMP_ADDRESS_2, "PMP2");
 Ezo_board pHSensor_Tank01 = Ezo_board(PH_SENSOR_ADDRESS_1, "pH1");
 Ezo_board pHSensor_Tank02 = Ezo_board(101, "pH2");
 
+//callback function when the timer expires
+void startControlTank2(TimerHandle_t controlTank2Timer){
+    Serial.println(pHSensor_Tank02.get_address());
+    xTaskCreatePinnedToCore(controlPH02, "pH02 Control", 1024, NULL, 3, &pH02Control_handle, app_cpu);
+    xTaskCreatePinnedToCore(controlLLS02, "LLS02 Control", 1024, NULL, 1, &LLS02Control_handle, app_cpu);
+}
 // pH Sensor Reading Functions
 float phSensorReadTank01() {
     pHSensor_Tank01.send_read_cmd();
@@ -66,18 +72,6 @@ void doseAcidTank02() {
     Serial.println("Tank 2: Acid dosing command sent.");
 }
 
-// Tank 1 Control
-void controlTank01(void* parameters){
-    xTaskCreatePinnedToCore(controlPH01, "pH01 Control", 2048, NULL, 3, &pH01Control_handle, app_cpu);
-    xTaskCreatePinnedToCore (controlLLS01, "LLS01 Control", 2048, NULL, 1, &LLS01Control_handle, app_cpu);
-    
-    
-    while (true){
-        Serial.println("Tank 1 control loop");
-        /*Configure Delay between sensor readings*/
-        vTaskDelay(2000/ portTICK_PERIOD_MS);
-    }
-}
 
 void controlPH01(void* parameters) {
   const uint32_t dosingDelayMinutes = 5; // Dosing delay in minutes. Change as needed.
@@ -105,7 +99,7 @@ void controlPH01(void* parameters) {
     
     vTaskDelay(5000 / portTICK_PERIOD_MS);
   }
-}
+ }
 }
 
 
@@ -130,19 +124,6 @@ void controlLLS01(void* parameters) {
 }
 
 // TANK 2
-
-void controlTank02(void* parameters) {
-    Serial.println(pHSensor_Tank02.get_address());
-    xTaskCreatePinnedToCore(controlPH02, "pH02 Control", 2048, NULL, 3, &pH02Control_handle, app_cpu);
-    xTaskCreatePinnedToCore(controlLLS02, "LLS02 Control", 2048, NULL, 1, &LLS02Control_handle, app_cpu);
-    
-    while (true) {
-        Serial.println("Tank 2 control loop");
-        vTaskDelay(2000 / portTICK_PERIOD_MS);
-    }
-}
-
-
 void controlPH02(void* parameters) {
     const uint32_t dosingDelayMinutes = 1; // Dosing delay in minutes
     const TickType_t dosingDelayTicks = pdMS_TO_TICKS(dosingDelayMinutes * 30000UL);
