@@ -7,9 +7,9 @@
 
 
 // Tank 1
+void controlTank1();
 float phSensorReadTank01();
 void doseAcidTank01();
-void controlTank01(void* parameters);
 void controlPH01(void* parameters);
 void controlLLS01(void* parameters);
 

@@ -7,9 +7,9 @@
 
 #define PRESSURE_LIMIT 100
 /*change to 114*/
-const int PG01_SENSOR_ADDRESS = 109;
+const int PG01_SENSOR_ADDRESS = 114;
 const int LLS04LowPin = 14;
-const int LLS04HighPin = 16;
+const int LLS04HighPin = 35;
 
 Ezo_board pG01Sensor = Ezo_board(PG01_SENSOR_ADDRESS, "pG01");
 /* Using core 1 of ESP32 */
@@ -21,10 +21,13 @@ static const BaseType_t app_cpu = 1;
 
 //void setupHardware();
 //void setupNetwork();
-TaskHandle_t pH01Control_handle = NULL;
-TaskHandle_t LLS01Control_handle = NULL;
+
 TaskHandle_t monitorSensors_handle = NULL;
 TaskHandle_t controlElectrodialysis_handle = NULL;
+//UART Serial Pins
+#define RXD2 16
+#define TXD2 17
+HardwareSerial sensor(2);
 
 //run the Urinal& Strainer PG monitoring and the Tank 8 control in the main task
 void monitorPG01();
@@ -38,21 +41,34 @@ void setup() {
   /*TODO: Implement Start signal*/
 
   Serial.begin(115200);
+  sensor.begin(9600, SERIAL_8N1, RXD2, TXD2);
   pinMode(LLS04HighPin, INPUT_PULLUP);
   pinMode(LLS04LowPin, INPUT_PULLUP);
   Wire.begin();
-  xTaskCreatePinnedToCore(controlPH01, "pH01 Control", 1024, NULL, 3, &pH01Control_handle, app_cpu);
-  xTaskCreatePinnedToCore (controlLLS01, "LLS01 Control", 1024, NULL, 1, &LLS01Control_handle, app_cpu);
+  //controlTank1();
   //xTaskCreatePinnedToCore (monitorSensors, "Sensor Monitoring", 2048, NULL, 1, &monitorSensors_handle, app_cpu);
-  //xTaskCreatePinnedToCore (controlPG01, "PG02 Control", 2048, NULL, 1, &controlPG01_handle, app_cpu);
-  //controlElectrodialysis();
+  controlElectrodialysis();
+  
+  
+  
 }
 
 void loop() {
+  /*
+  sensor.print("I2C,113");
+  sensor.print("\r");
+  if (sensor.available()>0){
+    Serial.println(sensor.read());
+    Serial.println("ye");
+  }
+  */
+ /*
   monitorPG01();
+  
   vTaskDelay(500/portTICK_PERIOD_MS);
   monitorLLS04();
   vTaskDelay(6000/portTICK_PERIOD_MS);
+  */
 }
 
 void monitorLLS04(){

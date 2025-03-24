@@ -11,7 +11,7 @@ static const BaseType_t app_cpu = 1;
 // Replace these with actual Atlas Scientific addresses
 #define DOSING_PUMP_ADDRESS_1 0x38  // Example address for Tank 1 dosing pump
 #define DOSING_PUMP_ADDRESS_2 0x39  // Example address for Tank 2 dosing pump
-#define PH_SENSOR_ADDRESS_1   0x63  // Example address for Tank 1 pH sensor
+#define PH_SENSOR_ADDRESS_1   0x64  // Example address for Tank 1 pH sensor
 #define PH_SENSOR_ADDRESS_2   0x65  // Example address for Tank 2 pH sensor
 
 // Liquid Level Sensor (LLS) Pins
@@ -26,6 +26,8 @@ TimerHandle_t controlTank2Timer;
 // Task handles for Tank 2
 TaskHandle_t pH02Control_handle = NULL;
 TaskHandle_t LLS02Control_handle = NULL;
+TaskHandle_t pH01Control_handle = NULL;
+TaskHandle_t LLS01Control_handle = NULL;
 
 // Create an instance of the dosing pumps
 Ezo_board dosingPumpTank01 = Ezo_board(DOSING_PUMP_ADDRESS_1, "PMP1");
@@ -33,13 +35,28 @@ Ezo_board dosingPumpTank02 = Ezo_board(DOSING_PUMP_ADDRESS_2, "PMP2");
 
 // Create an instance of the sensors
 Ezo_board pHSensor_Tank01 = Ezo_board(PH_SENSOR_ADDRESS_1, "pH1");
-Ezo_board pHSensor_Tank02 = Ezo_board(101, "pH2");
+Ezo_board pHSensor_Tank02 = Ezo_board(PH_SENSOR_ADDRESS_2, "pH2");
+
 
 //callback function when the timer expires
 void startControlTank2(TimerHandle_t controlTank2Timer){
     Serial.println(pHSensor_Tank02.get_address());
-    xTaskCreatePinnedToCore(controlPH02, "pH02 Control", 1024, NULL, 3, &pH02Control_handle, app_cpu);
-    xTaskCreatePinnedToCore(controlLLS02, "LLS02 Control", 1024, NULL, 1, &LLS02Control_handle, app_cpu);
+    xTaskCreatePinnedToCore(controlPH02, "pH02 Control", 2048, NULL, 3, &pH02Control_handle, app_cpu);
+    xTaskCreatePinnedToCore(controlLLS02, "LLS02 Control", 2048, NULL, 1, &LLS02Control_handle, app_cpu);
+}
+void controlTank1(){
+    xTaskCreatePinnedToCore(controlPH01, "pH01 Control", 2048, NULL, 4, &pH01Control_handle, app_cpu);
+    xTaskCreatePinnedToCore (controlLLS01, "LLS01 Control", 2048, NULL, 1, &LLS01Control_handle, app_cpu);
+    ///timer to start tank 02 control
+  controlTank2Timer = xTimerCreate(
+    "Control Tank 2 Timer",
+    //change to 1 minute
+    1000/portTICK_PERIOD_MS,
+    pdFALSE,
+    (void*)0,
+    startControlTank2
+  );
+  xTimerStart(controlTank2Timer, portMAX_DELAY);
 }
 // pH Sensor Reading Functions
 float phSensorReadTank01() {
@@ -74,12 +91,11 @@ void doseAcidTank02() {
 
 
 void controlPH01(void* parameters) {
-  const uint32_t dosingDelayMinutes = 5; // Dosing delay in minutes. Change as needed.
-  const TickType_t dosingDelayTicks = dosingDelayMinutes * 60000 / portTICK_PERIOD_MS;
+  Serial.println(pHSensor_Tank01.get_address());
+  const uint32_t dosingDelayMinutes = 1; // Dosing delay in minutes
+    const TickType_t dosingDelayTicks = pdMS_TO_TICKS(dosingDelayMinutes * 30000UL);
+    TickType_t lastDoseTick = 0;
   
-  // Tick Count of last dosing
-  TickType_t lastDoseTick = 0;
-
   while (true) {  
     float pHValue = phSensorReadTank01();
 
@@ -90,15 +106,19 @@ void controlPH01(void* parameters) {
       
         doseAcidTank01();       
         lastDoseTick = xTaskGetTickCount();
+        }
     }
-    
     else if (pHValue < 6) {
       // pH is too low, send an alert
       Serial.print("Tank 1 pH reading is");Serial.println(pHValue);
     }
-    
+    else{
+        //doseAcidTank01(); 
+        Serial.print("Tank 1 pH reading is");Serial.println(pHValue);
+    }
+    Serial.println("task 1");
     vTaskDelay(5000 / portTICK_PERIOD_MS);
-  }
+  
  }
 }
 

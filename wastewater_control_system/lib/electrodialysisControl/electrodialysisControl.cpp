@@ -28,11 +28,11 @@ const int SHUTDOWN_VOLTAGE = 75;
 #define PUMP04_ADDR ((uint16_t)0xC3)
 #define PUMP05_ADDR ((uint16_t)0xC4)
 
-const int dC01Pin = 12;
-const int dC02Pin = 13;
-const int dC03Pin = 14;
-const int lowLevelPin = 15;
-const int highLevelPin = 16;
+const int dC01Pin = 32;
+const int dC02Pin = 33;
+const int dC03Pin = 34;
+const int lowLevelPin = 26;
+const int highLevelPin = 27;
 const int PG02_SENSOR_ADDRESS = 110;
 const int PG03_SENSOR_ADDRESS = 111;
 const int Cond02_SENSOR_ADDRESS = 112;
@@ -96,9 +96,9 @@ void controlElectrodialysis(){
     setupPumps();
 
     //Hardware interrupts for overvoltage conditions
-    attachInterrupt(dC01Pin, systemShutdown, HIGH);
-    attachInterrupt(dC02Pin, systemShutdown, HIGH);
-    attachInterrupt(dC03Pin, systemShutdown, HIGH);
+    //attachInterrupt(dC01Pin, systemShutdown, HIGH);
+    //attachInterrupt(dC02Pin, systemShutdown, HIGH);
+    //attachInterrupt(dC03Pin, systemShutdown, HIGH);
 
     //creates the timers
     controlPress1Timer = xTimerCreate(
@@ -122,6 +122,8 @@ void controlElectrodialysis(){
 
     
     //turn on pump 1
+    pumpControl(PUMP01_ADDR, PUMP_OFF);
+    delay(5000);
     pumpControl(PUMP01_ADDR, PUMP_ON);
     
 }
@@ -132,7 +134,7 @@ void controlPressure(void* parameters){
         /*TODO make the pump and the pg pins parameters*/
         pumpControl(pressDevices->pumpAddr, PUMP_ON);
         if (readSensor(pressDevices->pGSensor) < (float)PRESSURE_LIMIT){
-            sendAlert("PG02 pressure is below 100");
+            Serial.println("PG02 pressure is below 100");
         }
         vTaskDelay(60000/portTICK_PERIOD_MS);
     }
@@ -147,10 +149,10 @@ void controlCellVoltage(void* parameters){
         Serial.println("Turning on UV Lamp");
     
         if (readSensor(cond02Sensor)< 23){
-            sendAlert("C02 is below the threshold");
+            Serial.println("C02 is below the threshold");
         }
         if (readSensor(cond03Sensor)< 23){
-            sendAlert("C02 is below the threshold");
+            Serial.println("C02 is below the threshold");
         }
         vTaskDelay(60000/portTICK_PERIOD_MS);
         
@@ -160,18 +162,19 @@ void controlCellVoltage(void* parameters){
 void controlLLS05(void* parameters){
     for(;;){
         if (readLiquidLevel(lowLevelPin) == 0){
-            sendAlert("liquid is below low level");
+            Serial.println("liquid is below low level");
         }
         else if (readLiquidLevel(highLevelPin) == 1){
-            sendAlert("liquid is above high level");
+            Serial.println("liquid is above high level");
         }
         vTaskDelay(60000/portTICK_PERIOD_MS);
     }
 }
+/*
 void IRAM_ATTR systemShutdown(){
     Serial.println("Overvoltage condition! System shutdown");
 }
-
+*/
 float readSensor(Ezo_board sensor){
     return sensor.get_last_received_reading();
 }
@@ -192,9 +195,9 @@ void setupPumps(){
 void pumpControl(uint16_t pumpAddr, int direction){
 
     //turns pump on or off
-    modbus.writeCoilsRegister(pumpAddr, 0x1001,PUMP_ON);
+    modbus.writeCoilsRegister(pumpAddr, 0x1001,direction);
     delay(50);
-
+    Serial.print(pumpAddr);Serial.println("on");
     //sets the speed of the pump to 400.0rpm for now
     modbus.writeHoldingRegister(pumpAddr,0x3001,0x43C8);
     delay(50);
