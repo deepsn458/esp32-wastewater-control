@@ -47,21 +47,21 @@ void setup() {
   Wire.begin();
   //controlTank1();
   //xTaskCreatePinnedToCore (monitorSensors, "Sensor Monitoring", 2048, NULL, 1, &monitorSensors_handle, app_cpu);
-  controlElectrodialysis();
+ //controlElectrodialysis();
   
   
   
 }
 
 void loop() {
-  /*
-  sensor.print("I2C,113");
+  
+  sensor.print("I2C,106");
   sensor.print("\r");
   if (sensor.available()>0){
     Serial.println(sensor.read());
     Serial.println("ye");
   }
-  */
+  
  /*
   monitorPG01();
   

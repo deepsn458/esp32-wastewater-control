@@ -9,10 +9,10 @@ static const BaseType_t app_cpu = 0;
 static const BaseType_t app_cpu = 1;
 #endif
 
-const int PH_SENSOR_ADDRESS_T06 = 101;
+const int PH_SENSOR_ADDRESS_T06 = 100;
 const int PH_SENSOR_ADDRESS_T07 = 102;
-const int PH_SENSOR_ADDRESS_EC1 = 103;
-const int PH_SENSOR_ADDRESS_EC2 = 104;
+const int PH_SENSOR_ADDRESS_EC1 = 103;//not yet set
+const int PH_SENSOR_ADDRESS_EC2 = 104;//not yet set
 const int COND_SENSOR_ADDRESS_EC1 = 105;
 const int COND_SENSOR_ADDRESS_EC2 = 106;
 const int COND_SENSOR_ADDRESS_T7 = 110;
@@ -40,12 +40,6 @@ Ezo_board doSensor_Tank07 = Ezo_board(DO_SENSOR_ADDRESS_T07, "DO_T07");
 // Create instance for temperature sensor on Tank01.
 Ezo_board tempSensor_Tank01 = Ezo_board(TEMP_SENSOR_ADDRESS_T01, "Temp_T01");
 
-
-// Turbidity Sensors
-Ezo_board turbiditySensor_Tank01 = Ezo_board(122, "Turb1");
-Ezo_board turbiditySensor_EC1   = Ezo_board(121, "TurbEC1");
-Ezo_board turbiditySensor_EC2   = Ezo_board(120, "TurbEC2");
-
 void sensorMonitoringTask(void* parameters) {
     // Set sensor read delay (in ticks). Currently set as 5000ms
     Wire.begin();
@@ -72,11 +66,6 @@ void sensorMonitoringTask(void* parameters) {
 
         // Temperature sensor:
         tempSensor_Tank01.send_read_cmd();
-        
-        // Turbidity sensors:
-        turbiditySensor_Tank01.send_read_cmd();
-        turbiditySensor_EC1.send_read_cmd();
-        turbiditySensor_EC2.send_read_cmd();
 
         // Wait for sensors to process the command (might need to adjust)
         vTaskDelay(1000 / portTICK_PERIOD_MS);
@@ -98,11 +87,6 @@ void sensorMonitoringTask(void* parameters) {
         // Temperature sensor:
         tempSensor_Tank01.receive_read_cmd();
         
-        // Turbidity sensors:
-        turbiditySensor_Tank01.receive_read_cmd();
-        turbiditySensor_EC1.receive_read_cmd();
-        turbiditySensor_EC2.receive_read_cmd();
-
         // Retrieve sensor readings
         float ph_t06    = pHSensor_Tank06.get_last_received_reading();
         float ph_t07    = pHSensor_Tank07.get_last_received_reading();
