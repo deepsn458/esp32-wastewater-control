@@ -11,7 +11,7 @@ void controlElectrochemicalVoltage(void* parameters);
 void controlLLS05(void* parameters);
 void startControlPress1(TimerHandle_t controlPress1Timer);
 void startControlPress2(TimerHandle_t controlPress2Timer);
-void IRAM_ATTR systemShutdown();
+void checkVoltage(int psuID);
 
 /*TODO: make these functions global so they can be called by the different modules*/
 void setupPumps();

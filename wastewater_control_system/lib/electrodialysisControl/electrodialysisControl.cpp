@@ -16,21 +16,28 @@ static const BaseType_t app_cpu = 1;
 const int PUMP_ON = 1;
 const int PUMP_OFF =0;
 const int PRESSURE_LIMIT = 100;
-const int SHUTDOWN_VOLTAGE = 75;
+const float SHUTDOWN_VOLTAGE = 75.0;
 
 //UART Serial Pins
 #define RXD2 16
 #define TXD2 17
+#define RXD1 18
+#define TXD1 19
 /*TODO set each kamoer pump a unique Modbus Address using the rotary encoder*/
 #define PUMP01_ADDR ((uint16_t)0xC0)
 #define PUMP02_ADDR ((uint16_t)0xC1)
 #define PUMP03_ADDR ((uint16_t)0xC2)
 #define PUMP04_ADDR ((uint16_t)0xC3)
 #define PUMP05_ADDR ((uint16_t)0xC4)
+#define DC01 1
+#define DC02 2
+#define DCO3 3
 
-const int dC01Pin = 32;
-const int dC02Pin = 33;
-const int dC03Pin = 34;
+//for serial port expander
+const int serialSelect1 = 32;
+const int serialSelect2 = 33;
+const int serialSelect3 = 34;
+
 const int lowLevelPin = 26;
 const int highLevelPin = 27;
 const int PG02_SENSOR_ADDRESS = 110;
@@ -40,7 +47,7 @@ const int Cond03_SENSOR_ADDRESS = 113;
 
 //sets up the serial port for RS485 Communication
 HardwareSerial rs485Serial(2);
-
+HardwareSerial PSUSerial(1);
 //creates modbus object for rs485 communication
 DFRobot_RTU modbus(&rs485Serial);
 /*TODO: Assign each sensors a unique I2C Address*/
@@ -90,15 +97,15 @@ void startControlPress2(TimerHandle_t controlPress2Timer){
 }
 
 void controlElectrodialysis(){
-    
+    pinMode(serialSelect1, OUTPUT);
+    pinMode(serialSelect2, OUTPUT);
+    pinMode(serialSelect3, OUTPUT);
+
     rs485Serial.begin(9600, SERIAL_8N1, RXD2, TXD2);
+    PSUSerial.begin(9600, SERIAL_8N1, RXD1, TXD1);
     //sets up the RS485 Communication with the pumps
     setupPumps();
 
-    //Hardware interrupts for overvoltage conditions
-    //attachInterrupt(dC01Pin, systemShutdown, HIGH);
-    //attachInterrupt(dC02Pin, systemShutdown, HIGH);
-    //attachInterrupt(dC03Pin, systemShutdown, HIGH);
 
     //creates the timers
     controlPress1Timer = xTimerCreate(
@@ -147,14 +154,16 @@ void controlCellVoltage(void* parameters){
         pumpControl(PUMP03_ADDR, PUMP_ON);
         pumpControl(PUMP04_ADDR, PUMP_ON);
         Serial.println("Turning on UV Lamp");
-    
+        checkVoltage(DC01);
+        checkVoltage(DC02);
+        checkVoltage(DCO3);
         if (readSensor(cond02Sensor)< 23){
             Serial.println("C02 is below the threshold");
         }
         if (readSensor(cond03Sensor)< 23){
             Serial.println("C02 is below the threshold");
         }
-        vTaskDelay(60000/portTICK_PERIOD_MS);
+        vTaskDelay(10000/portTICK_PERIOD_MS);
         
     }
 
@@ -167,6 +176,7 @@ void controlLLS05(void* parameters){
         else if (readLiquidLevel(highLevelPin) == 1){
             Serial.println("liquid is above high level");
         }
+        
         vTaskDelay(60000/portTICK_PERIOD_MS);
     }
 }
@@ -181,6 +191,43 @@ float readSensor(Ezo_board sensor){
 
 int readLiquidLevel(int gpioPin){
     return digitalRead(gpioPin);
+}
+
+void checkVoltage(int psuID){
+    //selects the appropriate serial port
+    if (psuID == 1){
+        digitalWrite(serialSelect1, 0);
+        digitalWrite(serialSelect2,0);
+        digitalWrite(serialSelect3, 0);
+    }
+    else if (psuID == 2){
+        digitalWrite(serialSelect1, 0);
+        digitalWrite(serialSelect2,0);
+        digitalWrite(serialSelect3, 1);
+    }
+    if (psuID == 3){
+        digitalWrite(serialSelect1, 0);
+        digitalWrite(serialSelect2,1);
+        digitalWrite(serialSelect3, 0);
+    }
+    PSUSerial.print("VOLTage?\r\n");
+    int i = 0;
+    char voltReading[10];
+    while (PSUSerial.available()>0){
+      voltReading[i] = PSUSerial.read();
+      i++;
+    }
+    i = 0;
+    float voltage = atof(voltReading);
+    //either the system is on the verge of shutdown, or it has already been shutdown by
+    //the PSU's OVP system
+    if (voltage >= SHUTDOWN_VOLTAGE || voltage <= 0.0){
+      Serial.print("DC 0");Serial.print(psuID);Serial.println("Overvoltage");
+    }
+    Serial.println(voltReading);
+    delay(1000);
+
+    
 }
 
 /*TODO: Control peristaltic pumps with Modbus-rtu */
