@@ -1,4 +1,7 @@
 #include <Arduino.h>
+#include <WiFi.h>
+#include <FirebaseClient.h>
+#include "database.h"
 #include <Ezo_i2c.h>
 #include "tankControl.h"
 #include "sensorMonitoring.h"
@@ -6,7 +9,6 @@
 #include <Wire.h>
 
 #define PRESSURE_LIMIT 100
-/*change to 114*/
 const int PG01_SENSOR_ADDRESS = 114;
 const int LLS04LowPin = 14;
 const int LLS04HighPin = 35;
@@ -19,57 +21,36 @@ static const BaseType_t app_cpu = 0;
 static const BaseType_t app_cpu = 1;
 #endif
 
-//void setupHardware();
-//void setupNetwork();
 
-TaskHandle_t monitorSensors_handle = NULL;
-TaskHandle_t controlElectrodialysis_handle = NULL;
-//UART Serial Pins
-#define RXD2 16
-#define TXD2 17
-HardwareSerial sensor(2);
+#define WIFI_SSID "Rice Visitor"
 
-//run the Urinal& Strainer PG monitoring and the Tank 8 control in the main task
-void monitorPG01();
-void monitorLLS04();
+const char* DATABASE_URL = "https://waste-water-control-default-rtdb.firebaseio.com/";
 
-void setup() {
-  // set up all the sensors and drivers and the network
-  //setupHardware();
-  //setupNetwork();
-  //wait for start signal
-  /*TODO: Implement Start signal*/
-
-  Serial.begin(115200);
-  sensor.begin(9600, SERIAL_8N1, RXD2, TXD2);
+void setup(){
   pinMode(LLS04HighPin, INPUT_PULLUP);
   pinMode(LLS04LowPin, INPUT_PULLUP);
   Wire.begin();
-  //controlTank1();
-  //xTaskCreatePinnedToCore (monitorSensors, "Sensor Monitoring", 2048, NULL, 1, &monitorSensors_handle, app_cpu);
- //controlElectrodialysis();
-  
-  
-  
+  Serial.begin(115200);
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(WIFI_SSID);
+  while (WiFi.status() != WL_CONNECTED) {
+    Serial.print(".");
+    delay(500);
+  }
+  Serial.print(WiFi.localIP());
+  initFirebase(DATABASE_URL);
+  Serial.println("Firebase is ready");
 }
 
+
+
 void loop() {
-  
-  sensor.print("I2C,106");
-  sensor.print("\r");
-  if (sensor.available()>0){
-    Serial.println(sensor.read());
-    Serial.println("ye");
-  }
-  
- /*
-  monitorPG01();
-  
-  vTaskDelay(500/portTICK_PERIOD_MS);
-  monitorLLS04();
-  vTaskDelay(6000/portTICK_PERIOD_MS);
-  */
+  // Keep Firebase tasks running
+  fireBaseLoop();
+  pushSensorReading("Pressure", "PG02",89);
+  delay(1000); // minor delay
 }
+
 
 void monitorLLS04(){
   if (!digitalRead(LLS04HighPin)){
