@@ -12,7 +12,7 @@
 const int PG01_SENSOR_ADDRESS = 114;
 const int LLS04LowPin = 14;
 const int LLS04HighPin = 35;
-
+TaskHandle_t monitorSensorsHandle = NULL;
 Ezo_board pG01Sensor = Ezo_board(PG01_SENSOR_ADDRESS, "pG01");
 /* Using core 1 of ESP32 */
 #if CONFIG_FREERTOS_UNICORE
@@ -40,6 +40,7 @@ void setup(){
   Serial.print(WiFi.localIP());
   initFirebase(DATABASE_URL);
   Serial.println("Firebase is ready");
+  xTaskCreatePinnedToCore(monitorSensors,"Sensor Monitoring Task", 8000,NULL,2, &monitorSensorsHandle, app_cpu);
 }
 
 
@@ -47,8 +48,8 @@ void setup(){
 void loop() {
   // Keep Firebase tasks running
   fireBaseLoop();
-  pushSensorReading("Pressure", "PG02",89);
-  delay(1000); // minor delay
+  //pushSensorReading("Pressure", "PG02",89);
+  delay(100); // minor delay
 }
 
 

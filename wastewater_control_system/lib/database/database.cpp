@@ -77,8 +77,8 @@ void pushSensorReading(const String &sensorType,const String &sensorId, float re
     //if the task queue is full, we wait till all the tasks have been cleared
     else if (async_client2.taskCount() == maximumTaskCount){
         clearedTasks = false;
-        while (async_client2.taskCount() != 0){
-            delay(500);
+        while (async_client2.taskCount() > 9){
+            delay(50);
         }
         clearedTasks = true;
     }
@@ -111,7 +111,7 @@ void pushAlert(const String &alert){
     else if (async_client2.taskCount() == maximumTaskCount){
         clearedTasks = false;
         while (async_client2.taskCount() != 0){
-            delay(500);
+            delay(100);
         }
         clearedTasks = true;
     }
