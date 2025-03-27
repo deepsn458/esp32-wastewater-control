@@ -11,6 +11,6 @@ void processData(AsyncResult &aResult);
 
 //pushes a sensor reading to the database
 void pushSensorReading(const String &sensorType,const String &sensorId, float readingValue);
-
+void pushAlert(const String &alert);
 void fireBaseLoop();
 #endif

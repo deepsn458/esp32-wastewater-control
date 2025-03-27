@@ -10,10 +10,13 @@ static const char* API_KEY       = "AIzaSyCRiDbuGOOqW_q_OKA_-zeCXVWCqW3gJe4";
 static const char* USER_EMAIL    = "controlrtdb@gmail.com";
 static const char* USER_PASSWORD = "ControlRTDB1!";
 //static const int   TOKEN_EXPIRE  = 3000; 
-bool finishedTask = true;
+
 // device ID that must match auth.uid in rtdb rules
 static const char* DEVICE_ID     = "esp32";
 
+const int maximumTaskCount = 20;
+//check if the task queue has been cleared
+bool clearedTasks = true;
 // The UserAuth object
 UserAuth user_auth(API_KEY, USER_EMAIL, USER_PASSWORD);
 
@@ -63,7 +66,6 @@ void processData(AsyncResult &aResult)
 
     if (aResult.available())
         Firebase.printf("task: %s, payload: %s\n", aResult.uid().c_str(), aResult.c_str());
-        finishedTask = true;
 }
 
 
@@ -72,15 +74,23 @@ void pushSensorReading(const String &sensorType,const String &sensorId, float re
         Serial.println("[Firebase] Not ready yet for pushSensorReading.");
         return;
     }
-    else if (finishedTask){
-        finishedTask = false;
+    //if the task queue is full, we wait till all the tasks have been cleared
+    else if (async_client2.taskCount() == maximumTaskCount){
+        clearedTasks = false;
+        while (async_client2.taskCount() != 0){
+            delay(500);
+        }
+        clearedTasks = true;
+    }
+    else if (clearedTasks){
+        // build a JSON object with sensor info + server timestamp
         object_t readingObj;
         object_t tsObj;
         object_t fullTsObj;
         object_t fullMsgObj;
         String deviceId = "esp32";
         String path = "/devices/" + deviceId + "/sensors/" + sensorType + "/" + sensorId;
-
+        
         JsonWriter writer;
         writer.create(tsObj, ".sv", "timestamp");
         writer.create(readingObj, "reading", number_t(readingValue, 2));
@@ -89,7 +99,39 @@ void pushSensorReading(const String &sensorType,const String &sensorId, float re
         Serial.println(fullMsgObj);
         Database.push<object_t>(async_client2, path, fullMsgObj, processData, "pushSensorTask");
     }
-    // build a JSON object with sensor info + server timestamp
-    
     return;
 }
+
+void pushAlert(const String &alert){
+    if (!app.ready()) {
+        Serial.println("[Firebase] Not ready yet for pushSensorReading.");
+        return;
+    }
+    //if the task queue is full, we wait till all the tasks have been cleared
+    else if (async_client2.taskCount() == maximumTaskCount){
+        clearedTasks = false;
+        while (async_client2.taskCount() != 0){
+            delay(500);
+        }
+        clearedTasks = true;
+    }
+    else if (clearedTasks){
+        // build a JSON object with alert + server timestamp
+        object_t alertObj;
+        object_t tsObj;
+        object_t fullTsObj;
+        object_t fullMsgObj;
+        String deviceId = "esp32";
+        String path = "/devices/" + deviceId + "/alerts/";
+        
+        JsonWriter writer;
+        writer.create(tsObj, ".sv", "timestamp");
+        writer.create(alertObj, "alert", string_t(alert));
+        writer.create(fullTsObj, "timestamp", tsObj);
+        writer.join(fullMsgObj, 2,alertObj,fullTsObj);
+        Serial.println(fullMsgObj);
+        Database.push<object_t>(async_client2, path, fullMsgObj, processData, "pushAlertTask");
+    }
+    return;
+}
+

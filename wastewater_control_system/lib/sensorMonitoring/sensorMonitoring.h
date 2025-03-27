@@ -3,4 +3,5 @@
 
 
 void monitorSensors(void* parameters);
+void addSensors();
 #endif

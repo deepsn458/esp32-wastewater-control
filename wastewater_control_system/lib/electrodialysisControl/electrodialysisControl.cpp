@@ -4,6 +4,7 @@
 #include <Wire.h>
 #include <DFRobot_RTU.h>
 #include "electrodialysisControl.h"
+#include "database.h"
 
 /* Using core 1 of ESP32 */
 #if CONFIG_FREERTOS_UNICORE
@@ -142,6 +143,7 @@ void controlPressure(void* parameters){
         pumpControl(pressDevices->pumpAddr, PUMP_ON);
         if (readSensor(pressDevices->pGSensor) < (float)PRESSURE_LIMIT){
             Serial.println("PG02 pressure is below 100");
+            sendAlert("PG02 pressure is below 100");
         }
         vTaskDelay(60000/portTICK_PERIOD_MS);
     }
@@ -159,9 +161,11 @@ void controlCellVoltage(void* parameters){
         checkVoltage(DCO3);
         if (readSensor(cond02Sensor)< 23){
             Serial.println("C02 is below the threshold");
+            sendAlert("Cond02 C02 is below threshold");
         }
         if (readSensor(cond03Sensor)< 23){
             Serial.println("C02 is below the threshold");
+            sendAlert("Cond02 C02 is above threshold");
         }
         vTaskDelay(10000/portTICK_PERIOD_MS);
         
@@ -172,9 +176,11 @@ void controlLLS05(void* parameters){
     for(;;){
         if (readLiquidLevel(lowLevelPin) == 0){
             Serial.println("liquid is below low level");
+            sendAlert("LLS05 low level alert");
         }
         else if (readLiquidLevel(highLevelPin) == 1){
             Serial.println("liquid is above high level");
+            sendAlert("LLS05 high level alert");
         }
         
         vTaskDelay(60000/portTICK_PERIOD_MS);
@@ -222,7 +228,12 @@ void checkVoltage(int psuID){
     //either the system is on the verge of shutdown, or it has already been shutdown by
     //the PSU's OVP system
     if (voltage >= SHUTDOWN_VOLTAGE || voltage <= 0.0){
-      Serial.print("DC 0");Serial.print(psuID);Serial.println("Overvoltage");
+        char* alert;
+        sprintf(alert, "DC 0%d Overvoltage condition",psuID);
+        pushAlert(alert);
+        Serial.println(alert);
+
+
     }
     Serial.println(voltReading);
     delay(1000);
