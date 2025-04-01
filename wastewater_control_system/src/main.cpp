@@ -13,6 +13,8 @@ const int PG01_SENSOR_ADDRESS = 114;
 const int LLS04LowPin = 14;
 const int LLS04HighPin = 35;
 TaskHandle_t monitorSensorsHandle = NULL;
+TaskHandle_t controlPH01Handle = NULL;
+TaskHandle_t controlPH02Handle = NULL;
 Ezo_board pG01Sensor = Ezo_board(PG01_SENSOR_ADDRESS, "pG01");
 /* Using core 1 of ESP32 */
 #if CONFIG_FREERTOS_UNICORE
@@ -40,7 +42,8 @@ void setup(){
   Serial.print(WiFi.localIP());
   initFirebase(DATABASE_URL);
   Serial.println("Firebase is ready");
-  xTaskCreatePinnedToCore(monitorSensors,"Sensor Monitoring Task", 8000,NULL,2, &monitorSensorsHandle, app_cpu);
+  xTaskCreatePinnedToCore(controlPH01,"PH01 Control", 6048,NULL,2, &controlPH01Handle, app_cpu);
+  xTaskCreatePinnedToCore(controlPH02,"PH02 Control", 6048,NULL,2, &controlPH02Handle, app_cpu);
 }
 
 

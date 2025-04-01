@@ -7,7 +7,7 @@ const Dashboard = () => {
 
     useEffect(() => {
         const db = getDatabase(firebaseConf);
-        const sensorDataRef = ref(db, "/devices/esp32/sensors/");
+        const sensorDataRef = ref(db,"/devices/esp32/sensors");
 
         const fetchData = onValue(sensorDataRef, (snapshot) => {
             if (!snapshot.exists()) {

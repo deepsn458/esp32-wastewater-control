@@ -2,6 +2,7 @@
 #include "tankControl.h"
 #include "Ezo_i2c.h"   // Atlas EZO I2C library for controlling the pump
 #include "Wire.h"
+#include "database.h"
 /* Using core 1 of ESP32 */
 #if CONFIG_FREERTOS_UNICORE
 static const BaseType_t app_cpu = 0;
@@ -98,10 +99,12 @@ void controlPH01(void* parameters) {
   
   while (true) {  
     float pHValue = phSensorReadTank01();
+    pushSensorReading("ph", pHSensor_Tank01.get_name(), pHValue);
 
   // If pH is too high, check if it's time to dose again
     if (pHValue > 7) {
       Serial.print("Tank 1 pH reading is"); Serial.println(pHValue);
+      
       if ((xTaskGetTickCount() - lastDoseTick) >= dosingDelayTicks) {
       
         doseAcidTank01();       
@@ -150,7 +153,8 @@ void controlPH02(void* parameters) {
     TickType_t lastDoseTick = 0;
     
     while (true) {
-        float pHValue = phSensorReadTank02();  
+        float pHValue = phSensorReadTank02();
+        pushSensorReading("ph", pHSensor_Tank02.get_name(), pHValue);
         
         if (pHValue > 7) {
             Serial.print("Tank 2 pH reading is"); Serial.println(pHValue);
