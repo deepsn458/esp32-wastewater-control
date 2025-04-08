@@ -97,7 +97,7 @@ void pushSensorReading(const String &sensorType,const String &sensorId, float re
         writer.create(fullTsObj, "timestamp", tsObj);
         writer.join(fullMsgObj, 2,readingObj,fullTsObj);
         Serial.println(fullMsgObj);
-        Database.push<object_t>(async_client2, path, fullMsgObj, processData, "pushSensorTask");
+        Database.set<object_t>(async_client2, path, fullMsgObj, processData, "pushSensorTask");
     }
     return;
 }
