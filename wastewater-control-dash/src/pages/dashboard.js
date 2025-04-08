@@ -1,48 +1,68 @@
 import { useState, useEffect } from "react";
 import firebaseConf from "../firebaseConfig";
-import { getDatabase, ref, query, orderByChild, limitToLast, onValue } from "firebase/database";
+import {
+    getDatabase,
+    ref,
+    onValue,
+    query,
+    orderByChild,
+    limitToLast,
+} from "firebase/database";
 
 const Dashboard = () => {
     const [data, setData] = useState({});
 
     useEffect(() => {
         const db = getDatabase(firebaseConf);
-        const sensorDataRef = ref(db,"/devices/esp32/sensors");
+        const sensorDataRef = ref(db, "/devices/esp32/latestReadings");
 
-        const fetchData = onValue(sensorDataRef, (snapshot) => {
+        const unsubscribe = onValue(sensorDataRef, (snapshot) => {
+            console.log(snapshot.val())
             if (!snapshot.exists()) {
                 console.log("No data available");
                 setData({});
                 return;
             }
 
-            const latestData = {};
+            const promises = [];
 
-            snapshot.forEach((sensorSnapshot) => {
-                const sensorName = sensorSnapshot.key; // "pH"
+            snapshot.forEach((sensorTypeSnap) => {
+                sensorTypeSnap.forEach((sensorIdSnap) => {
+                    const sensorId = sensorIdSnap.key;
+                    const latestReadingQuery = query(sensorIdSnap.ref, orderByChild("timestamp"), limitToLast(1));
 
-                sensorSnapshot.forEach((sensorIdSnapshot) => {
-                    const sensorId = sensorIdSnapshot.key; // "pH1"
-
-                    // Get the last taskID using orderByChild + limitToLast(1)
-                    const lastTaskQuery = query(sensorIdSnapshot.ref, orderByChild("timestamp"), limitToLast(1));
-
-                    onValue(lastTaskQuery, (taskSnapshot) => {
-                        taskSnapshot.forEach((taskData) => {
-                            latestData[sensorId] = {
-                                id: taskData.key, // Latest taskID
-                                reading: taskData.val().reading,
-                                timestamp: taskData.val().timestamp,
-                            };
+                    const promise = new Promise((resolve) => {
+                        onValue(latestReadingQuery, (readingSnap) => {
+                            readingSnap.forEach((childSnap) => {
+                                resolve({
+                                    sensorId,
+                                    data: {
+                                        id: childSnap.key,
+                                        reading: childSnap.val().reading,
+                                        timestamp: childSnap.val().timestamp,
+                                    },
+                                });
+                            });
+                        }, {
+                            onlyOnce: true 
                         });
-
-                        setData({ ...latestData });
                     });
+
+                    promises.push(promise);
                 });
+            });
+
+            Promise.all(promises).then((results) => {
+                const newData = {};
+                results.forEach(({ sensorId, data }) => {
+                    newData[sensorId] = data;
+                });
+                setData(newData);
             });
         });
 
-        fetchData();
+        // Optional: return unsubscribe function for cleanup
+        return () => unsubscribe();
     }, []);
 
     return (
@@ -51,7 +71,7 @@ const Dashboard = () => {
             <ul>
                 {Object.entries(data).map(([sensorId, sensorDetails]) => (
                     <li key={sensorDetails.id}>
-                        <strong>{sensorId}:</strong> (Latest Reading:{sensorDetails.reading})
+                        <strong>{sensorId}:</strong> Latest Reading: {sensorDetails.reading}
                     </li>
                 ))}
             </ul>

@@ -89,7 +89,7 @@ void pushSensorReading(const String &sensorType,const String &sensorId, float re
         object_t fullTsObj;
         object_t fullMsgObj;
         String deviceId = "esp32";
-        String path = "/devices/" + deviceId + "/sensors/" + sensorType + "/" + sensorId;
+        String path = "/devices/" + deviceId + "/latestReadings/" + sensorId;
         
         JsonWriter writer;
         writer.create(tsObj, ".sv", "timestamp");

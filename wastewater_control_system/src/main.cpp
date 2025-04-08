@@ -42,8 +42,9 @@ void setup(){
   Serial.print(WiFi.localIP());
   initFirebase(DATABASE_URL);
   Serial.println("Firebase is ready");
-  xTaskCreatePinnedToCore(controlPH01,"PH01 Control", 6048,NULL,2, &controlPH01Handle, app_cpu);
-  xTaskCreatePinnedToCore(controlPH02,"PH02 Control", 6048,NULL,2, &controlPH02Handle, app_cpu);
+  //xTaskCreatePinnedToCore(controlPH01,"PH01 Control", 6048,NULL,2, &controlPH01Handle, app_cpu);
+  //xTaskCreatePinnedToCore(controlPH02,"PH02 Control", 6048,NULL,2, &controlPH02Handle, app_cpu);
+  xTaskCreatePinnedToCore(monitorSensors,"Monitor Sensors", 6048, NULL, 2,&monitorSensorsHandle, app_cpu);
 }
 
 

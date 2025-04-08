@@ -91,20 +91,20 @@ void monitorSensors(void* parameters) {
         tempSensor_Tank01.receive_read_cmd();
         
         // Retrieve sensor readings
-        float ph_t06    = pHSensor_Tank06.get_last_received_reading();
+        //float ph_t06    = pHSensor_Tank06.get_last_received_reading();
         //float ph_t07    = pHSensor_Tank07.get_last_received_reading();
         //float ph_ec1    = pHSensor_EC1.get_last_received_reading();
         //float ph_ec2    = pHSensor_EC2.get_last_received_reading();
 
        // float cond_ec1  = condSensor_EC1.get_last_received_reading();
-        float cond_ec2  = condSensor_EC2.get_last_received_reading();
+        //float cond_ec2  = condSensor_EC2.get_last_received_reading();
         //float cond_t7   = condSensor_Tank7.get_last_received_reading();
        // float cond_t2   = condSensor_Tank2.get_last_received_reading();
 
        // float do_t01    = doSensor_Tank01.get_last_received_reading();
-        float do_t07    = doSensor_Tank07.get_last_received_reading();
+        //float do_t07    = doSensor_Tank07.get_last_received_reading();
 
-        float temp_t01  = tempSensor_Tank01.get_last_received_reading();
+        //float temp_t01  = tempSensor_Tank01.get_last_received_reading();
 
 
         // Read digital LLS sensors
@@ -139,17 +139,17 @@ void monitorSensors(void* parameters) {
         Serial.print("Temp_T01,"); Serial.print(temp_t01_arr); Serial.print(",");
         */
         //sends all the sensor readings to the database
-        pushSensorReading("ph", pHSensor_Tank06.get_name(), ph_t06+rand());
+        pushSensorReading("ph", pHSensor_Tank06.get_name(), rand());
         //pushSensorReading("ph", pHSensor_Tank07.get_name(), ph_t07);
         //pushSensorReading("ph", pHSensor_EC1.get_name(), ph_ec1);
         //pushSensorReading("ph", pHSensor_EC2.get_name(), ph_ec2);
         //pushSensorReading("conductivity", condSensor_EC1.get_name(), cond_ec1);
-        pushSensorReading("conductivity",condSensor_EC2.get_name(), cond_ec2+rand());
+        pushSensorReading("conductivity",condSensor_EC2.get_name(), rand());
        // pushSensorReading("conductivity",condSensor_Tank7.get_name(), cond_t7);
         //pushSensorReading("conductivity",condSensor_Tank2.get_name(), cond_t2);
         //pushSensorReading("dissolved02",doSensor_Tank01.get_name(), do_t01);
-        pushSensorReading("dissolved02",doSensor_Tank07.get_name(), do_t07+rand());
-        pushSensorReading("temperature",tempSensor_Tank01.get_name(), temp_t01+rand());
+        pushSensorReading("dissolved02",doSensor_Tank07.get_name(), rand());
+        pushSensorReading("temperature",tempSensor_Tank01.get_name(), rand());
         vTaskDelay(sensorDelay);
     }
 }
