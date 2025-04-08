@@ -89,8 +89,8 @@ void pushSensorReading(const String &sensorType,const String &sensorId, float re
         object_t fullTsObj;
         object_t fullMsgObj;
         String deviceId = "esp32";
-        String path = "/devices/" + deviceId + "/latestReadings/" + sensorId;
-        
+        String path = "/devices/" + deviceId + "/latestReadings/"+ sensorType +"/" + sensorId;
+        String path2 = "/devices/" + deviceId + "/sensors/" + sensorType + "/" + sensorId;
         JsonWriter writer;
         writer.create(tsObj, ".sv", "timestamp");
         writer.create(readingObj, "reading", number_t(readingValue, 2));
@@ -98,6 +98,7 @@ void pushSensorReading(const String &sensorType,const String &sensorId, float re
         writer.join(fullMsgObj, 2,readingObj,fullTsObj);
         Serial.println(fullMsgObj);
         Database.set<object_t>(async_client2, path, fullMsgObj, processData, "pushSensorTask");
+        Database.push<object_t>(async_client2, path2, fullMsgObj, processData, "pushSensorTask");
     }
     return;
 }

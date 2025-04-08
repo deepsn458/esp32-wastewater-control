@@ -5,25 +5,35 @@ import {
   ref,
   onValue,
 } from "firebase/database";
-import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend } from 'recharts';
+import {
+  LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend,
+} from 'recharts';
 
 const Dashboard = () => {
   const [data, setData] = useState({});
-  const [chartData, setChartData] = useState([]);
-
+  const [chartData, setChartData] = useState({}); // sensorType -> data array
   const updateChartData = (newData) => {
-    const date = new Date();
-    const newEntry = { name: date.toLocaleTimeString() };
-
-    Object.entries(newData).forEach(([sensorId, sensorDetails]) => {
-      newEntry[sensorId] = sensorDetails.reading;
+    const timestamp = new Date().toLocaleTimeString();
+  
+    // Create a fresh copy of the chartData structure
+    const updatedChartData = {};
+  
+    Object.entries(newData).forEach(([sensorType, sensors]) => {
+      const newEntry = { name: timestamp };
+  
+      Object.entries(sensors).forEach(([sensorId, sensorInfo]) => {
+        newEntry[sensorId] = sensorInfo.reading;
+      });
+  
+      // Create a new array for this sensorType
+      const prev = chartData[sensorType] || [];
+      updatedChartData[sensorType] = [...prev, newEntry]; // Ensure max 10 entries
+      console.log(prev)
     });
-
-    setChartData((prevData) => {
-      const updated = [...prevData, newEntry];
-      return updated.slice(-10); // Keep only the last 10 entries
-    });
+  
+    setChartData(updatedChartData);
   };
+  
 
   useEffect(() => {
     const db = getDatabase(firebaseConf);
@@ -35,37 +45,38 @@ const Dashboard = () => {
       updateChartData(val);
     });
 
-    return () => unsubscribe(); // Clean up listener on unmount
+    return () => unsubscribe();
   }, []);
 
   return (
     <div>
       <h1>Latest Sensor Data</h1>
-      <ul>
-        {Object.entries(data).map(([sensorId, sensorDetails]) => (
-          <li key={sensorId}>
-            <strong>{sensorId}:</strong> Reading: {sensorDetails.reading}
-          </li>
-        ))}
-      </ul>
 
-      <h2>Sensor Chart (Last 10 updates)</h2>
-      <LineChart width={600} height={300} data={chartData}>
-        <CartesianGrid stroke="#ccc" />
-        <XAxis dataKey="name" />
-        <YAxis />
-        <Tooltip />
-        <Legend />
-        {Object.keys(data).map((sensorId) => (
-          <Line
-            key={sensorId}
-            type="monotone"
-            dataKey={sensorId}
-            stroke={"#8884d8"} // random color
-            dot={false}
-          />
-        ))}
-      </LineChart>
+      {Object.entries(data).map(([sensorType, sensors]) => (
+        <div key={sensorType} style={{ marginBottom: "2rem" }}>
+          <h2>{sensorType.toUpperCase()} Sensors</h2>
+          <LineChart
+            width={700}
+            height={300}
+            data={chartData[sensorType] || []}
+          >
+            <CartesianGrid stroke="#ccc" />
+            <XAxis dataKey="name" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            {Object.keys(sensors).map((sensorId) => (
+              <Line
+                key={sensorId}
+                type="monotone"
+                dataKey={sensorId}
+                stroke="#8884d8"
+                dot={false}
+              />
+            ))}
+          </LineChart>
+        </div>
+      ))}
     </div>
   );
 };
