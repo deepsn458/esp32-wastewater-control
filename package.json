@@ -1,6 +1,0 @@
-{
-  "dependencies": {
-    "@mui/x-charts": "^7.28.0",
-    "recharts": "^2.15.2"
-  }
-}
