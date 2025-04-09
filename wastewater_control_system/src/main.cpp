@@ -16,6 +16,9 @@ TaskHandle_t monitorSensorsHandle = NULL;
 TaskHandle_t controlPH01Handle = NULL;
 TaskHandle_t controlPH02Handle = NULL;
 Ezo_board pG01Sensor = Ezo_board(PG01_SENSOR_ADDRESS, "pG01");
+Ezo_board pHSensor = Ezo_board(99, "pH02");
+#define DOSING_PUMP_ADDRESS_1 0x38  // Example address for Tank 1 dosing pump
+Ezo_board dosingPumpTank01 = Ezo_board(DOSING_PUMP_ADDRESS_1, "PMP1");
 /* Using core 1 of ESP32 */
 #if CONFIG_FREERTOS_UNICORE
 static const BaseType_t app_cpu = 0;
@@ -23,7 +26,7 @@ static const BaseType_t app_cpu = 0;
 static const BaseType_t app_cpu = 1;
 #endif
 
-
+void phControl(void* params);
 #define WIFI_SSID "Rice Visitor"
 
 const char* DATABASE_URL = "https://waste-water-control-default-rtdb.firebaseio.com/";
@@ -44,7 +47,7 @@ void setup(){
   Serial.println("Firebase is ready");
   //xTaskCreatePinnedToCore(controlPH01,"PH01 Control", 6048,NULL,2, &controlPH01Handle, app_cpu);
   //xTaskCreatePinnedToCore(controlPH02,"PH02 Control", 6048,NULL,2, &controlPH02Handle, app_cpu);
-  xTaskCreatePinnedToCore(monitorSensors,"Monitor Sensors", 6048, NULL, 2,&monitorSensorsHandle, app_cpu);
+  xTaskCreatePinnedToCore(phControl,"Monitor Sensors", 8048, NULL, 2,&monitorSensorsHandle, app_cpu);
 }
 
 
@@ -53,10 +56,34 @@ void loop() {
   // Keep Firebase tasks running
   fireBaseLoop();
   //pushSensorReading("Pressure", "PG02",89);
+  //pushSensorReading("PH",pHSensor.get_name(), pHSensor.get_last_received_reading());
   delay(100); // minor delay
 }
 
+void phControl(void* params){
 
+  const uint32_t dosingDelayMinutes = 1; // Dosing delay in minutes
+  const TickType_t dosingDelayTicks = pdMS_TO_TICKS(dosingDelayMinutes * 60000UL);
+  TickType_t lastDoseTick = 0;
+  for (;;){
+    pHSensor.send_read_cmd();
+    vTaskDelay(1000/portTICK_PERIOD_MS);
+    pHSensor.receive_read_cmd();
+    float pHReading = pHSensor.get_last_received_reading();
+    Serial.println(pHReading);
+    pushSensorReading("PH",pHSensor.get_name(), pHSensor.get_last_received_reading());
+    
+    if (pHReading > 7.5) {
+      Serial.println(xTaskGetTickCount() - lastDoseTick);
+      if ((xTaskGetTickCount() - lastDoseTick) >= dosingDelayTicks) {
+          dosingPumpTank01.send_cmd_with_num("d,", 0.5);
+          lastDoseTick = xTaskGetTickCount();
+          Serial.println("pumping");
+      }
+  }
+  }
+  
+}
 void monitorLLS04(){
   if (!digitalRead(LLS04HighPin)){
     Serial.println("Tank 8 high level alert");
