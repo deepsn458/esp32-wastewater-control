@@ -7,6 +7,7 @@
 #include "sensorMonitoring.h"
 #include "electrodialysisControl.h"
 #include <Wire.h>
+#include <algorithm>
 
 #define PRESSURE_LIMIT 100
 const int PG01_SENSOR_ADDRESS = 114;
@@ -61,25 +62,24 @@ void loop() {
 }
 
 void phControl(void* params){
-
-  const uint32_t dosingDelayMinutes = 1; // Dosing delay in minutes
-  const TickType_t dosingDelayTicks = pdMS_TO_TICKS(dosingDelayMinutes * 60000UL);
+ 
   TickType_t lastDoseTick = 0;
   for (;;){
     pHSensor.send_read_cmd();
     vTaskDelay(1000/portTICK_PERIOD_MS);
     pHSensor.receive_read_cmd();
     float pHReading = pHSensor.get_last_received_reading();
+    uint32_t dosingDelaySeconds = max(30.0,(120-(pHReading-7.5)*60));
+    TickType_t dosingDelayTicks = pdMS_TO_TICKS(dosingDelaySeconds*1000);
     Serial.println(pHReading);
     pushSensorReading("PH",pHSensor.get_name(), pHSensor.get_last_received_reading());
-    
-    if (pHReading > 7.5) {
-      Serial.println(xTaskGetTickCount() - lastDoseTick);
-      if ((xTaskGetTickCount() - lastDoseTick) >= dosingDelayTicks) {
-          dosingPumpTank01.send_cmd_with_num("d,", 0.5);
-          lastDoseTick = xTaskGetTickCount();
-          Serial.println("pumping");
-      }
+  if (pHReading > 7.5){
+    Serial.println(xTaskGetTickCount() - lastDoseTick);
+    if ((xTaskGetTickCount() - lastDoseTick) >= dosingDelayTicks) {
+        dosingPumpTank01.send_cmd_with_num("d,", 0.5);
+        lastDoseTick = xTaskGetTickCount();
+        Serial.println("pumping");
+    }
   }
   }
   
