@@ -1,5 +1,15 @@
+/*
+WOULD NEED TO ADD THIS INTO SENSOR PUSHES:
+#include <map>
+std::map<String, float> pHReadings;
+sensorReadings[pHSensorExample.get_name()] = rand();  
+sensorReadings[pHSensorExample.get_name()] = rand();                
+sensorReadings[pHSensorExample.get_name()] = rand();                  
+sensorReadings[pHSensorExample.get_name()] = rand(); 
+pushMultipleSensorReadings("pH", pHReadings)
+*/
 
-void sendSensorReading(const String &sensorType,){
+void pushMultipleSensorReading(const String &sensorType, const std::map<String){
     if (!app.ready()) {
         Serial.println("[Firebase] Not ready yet for pushSensorReading.");
         return;
