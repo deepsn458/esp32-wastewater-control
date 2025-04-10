@@ -1,15 +1,7 @@
-/*
-WOULD NEED TO ADD THIS INTO SENSOR PUSHES:
-#include <map>
-std::map<String, float> pHReadings;
-sensorReadings[pHSensorExample.get_name()] = rand();  
-sensorReadings[pHSensorExample.get_name()] = rand();                
-sensorReadings[pHSensorExample.get_name()] = rand();                  
-sensorReadings[pHSensorExample.get_name()] = rand(); 
-pushpHReadings(pHReadings)
-*/
-
-void pushMultipleSensorReading(const std::map<String){
+void pushMultipleSensorReading(const String& sensor1Id, float sensor1Value,
+                              const String& sensor2Id, float sensor2Value,
+                              const String& sensor3Id, float sensor3Value,
+                              const String& sensor4Id, float sensor4Value){
     if (!app.ready()) {
         Serial.println("[Firebase] Not ready yet for pushSensorReading.");
         return;
@@ -25,8 +17,10 @@ void pushMultipleSensorReading(const std::map<String){
     else if (clearedTasks){
         object_t tsObj;
         object_t fullTsObj;
-        object_t sensor1Obj;
-        object_t sensor2Obj;
+        object_t sensorObj1;
+        object_t sensorObj2;
+        object_t sensorObj3;
+        object_t sensorObj4;
         object_t fullMsgObj;
         
         String path = "/devices/" + "esp32" + "/batchPushTest/";
@@ -35,19 +29,17 @@ void pushMultipleSensorReading(const std::map<String){
 
         writer.create(tsObj, ".sv", "timestamp");
         writer.create(fullTsObj, "timestamp", tsObj);
+
+        writer.create(sensorObj1, sensor1Id, number_t(sensor1Value, 2));
+        writer.create(sensorObj2, sensor2Id, number_t(sensor2Value, 2));
+        writer.create(sensorObj3, sensor3Id, number_t(sensor3Value, 2));
+        writer.create(sensorObj4, sensor4Id, number_t(sensor4Value, 2));
         
-        writer.create(sensor1Obj, "PH01", number_t(readingValue1, 2));
-        writer.create(sensor2Obj, "PH02", number_t(readingValue2, 2));
-        
-        // Join the sensor objects with the timestamp. The count (3) indicates we are merging three objects.
-        writer.join(fullMsgObj, 3, sensor1Obj, sensor2Obj, fullTsObj);
+        writer.join(fullMsgObj, 5, sensorObj1, sensorObj2, sensorObj3, sensorObj4, fullTsObj);
         
         Serial.println(fullMsgObj);
         
-        Database.push<object_t>(async_client2, path, fullMsgObj, processData, "");
-        writer.join(fullMsgObj, 3, sensor1Obj, sensor2Obj, fullTsObj);
-        Serial.println(fullMsgObj);
-        Database.push<object_t>(async_client2, path, fullMsgObj, processData, "");
+        Database.push<object_t>(async_client2, path, fullMsgObj, processData, "pushSensorTask");
     }
     return;
 }
