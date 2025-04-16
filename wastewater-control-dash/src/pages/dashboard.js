@@ -12,7 +12,12 @@ import {
 const Dashboard = () => {
   const COLORS = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b'];
 
-  const [data, setData] = useState({});
+  const [data, setData] = useState({
+    ph: {},
+    conductivity: {},
+    dissolved02: {},
+    temperature: {}
+  });
   const [pHChartData, setpHChartData] = useState([]);
   const [tempChartData, setTempChartData] = useState([]);
   const [condChartData, setCondChartData] = useState([]);
@@ -80,12 +85,11 @@ const Dashboard = () => {
     });
 
     return () => unsubscribe(); // Clean up listener on unmount
-  }, []);
+  }, [data]);
 
   return (
     <div>
       <h1>Latest Sensor Data</h1>
-      
       <ul>
         {Object.entries(data.ph).map(([sensorId, sensorDetails]) => (
           <li key={sensorId}>
