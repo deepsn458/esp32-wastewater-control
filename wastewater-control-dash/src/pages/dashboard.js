@@ -24,6 +24,7 @@ const Dashboard = () => {
     const newTempEntry = { name: date.toLocaleTimeString() };
     const newCondEntry = { name: date.toLocaleTimeString() };
     const newDOEntry = { name: date.toLocaleTimeString() };
+    console.log(newData.ph)
     Object.entries(newData.ph).forEach(([sensorId, sensorDetails]) =>{
       newPHEntry[sensorId] = sensorDetails.reading;
     });
@@ -73,7 +74,7 @@ const Dashboard = () => {
 
     const unsubscribe = onValue(sensorDataRef, (snapshot) => {
       const val = snapshot.val() || {};
-      //console.log(val)
+      console.log(val)
       setData(val);
       updateChartData(val);
     });
@@ -84,6 +85,7 @@ const Dashboard = () => {
   return (
     <div>
       <h1>Latest Sensor Data</h1>
+      
       <ul>
         {Object.entries(data.ph).map(([sensorId, sensorDetails]) => (
           <li key={sensorId}>
