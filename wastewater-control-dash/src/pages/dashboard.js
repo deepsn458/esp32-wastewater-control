@@ -35,7 +35,7 @@ const Dashboard = () => {
     });
     setpHChartData((prevData) => {
       const updated = [...prevData, newPHEntry];
-      return updated.slice(-10);
+      return updated.slice(-60);
     });
 
     Object.entries(newData.conductivity).forEach(([sensorId, sensorDetails]) =>{
@@ -43,7 +43,7 @@ const Dashboard = () => {
     });
     setCondChartData((prevData) => {
       const updated = [...prevData, newCondEntry];
-      return updated.slice(-10);
+      return updated.slice(-60);
     });
 
     Object.entries(newData.dissolved02).forEach(([sensorId, sensorDetails]) =>{
@@ -51,7 +51,7 @@ const Dashboard = () => {
     });
     setDOChartData((prevData) => {
       const updated = [...prevData, newDOEntry];
-      return updated.slice(-10);
+      return updated.slice(-60);
     });
 
     Object.entries(newData.temperature).forEach(([sensorId, sensorDetails]) =>{
@@ -59,7 +59,7 @@ const Dashboard = () => {
     });
     setTempChartData((prevData) => {
       const updated = [...prevData, newTempEntry];
-      return updated.slice(-10);
+      return updated.slice(-60);
     });
     /*
     Object.entries(newData).forEach(([sensorId, sensorDetails]) => {
