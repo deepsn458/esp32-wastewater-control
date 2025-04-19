@@ -16,12 +16,14 @@ const Dashboard = () => {
     ph: {},
     conductivity: {},
     dissolved02: {},
-    temperature: {}
+    temperature: {},
+    pressure:{}
   });
   const [pHChartData, setpHChartData] = useState([]);
   const [tempChartData, setTempChartData] = useState([]);
   const [condChartData, setCondChartData] = useState([]);
   const [dOChartData, setDOChartData] = useState([]);
+  const [pressureChartData, setPressureChartData] = useState([]);
 
   const updateChartData = (newData) => {
     const date = new Date();
@@ -29,6 +31,7 @@ const Dashboard = () => {
     const newTempEntry = { name: date.toLocaleTimeString() };
     const newCondEntry = { name: date.toLocaleTimeString() };
     const newDOEntry = { name: date.toLocaleTimeString() };
+    const newPressureEntry = { name: date.toLocaleTimeString() };
     console.log(newData.ph)
     Object.entries(newData.ph).forEach(([sensorId, sensorDetails]) =>{
       newPHEntry[sensorId] = sensorDetails.reading;
@@ -43,7 +46,7 @@ const Dashboard = () => {
     });
     setCondChartData((prevData) => {
       const updated = [...prevData, newCondEntry];
-      return updated.slice(-60);
+      return updated.slice(-100);
     });
 
     Object.entries(newData.dissolved02).forEach(([sensorId, sensorDetails]) =>{
@@ -51,7 +54,7 @@ const Dashboard = () => {
     });
     setDOChartData((prevData) => {
       const updated = [...prevData, newDOEntry];
-      return updated.slice(-60);
+      return updated.slice(-100);
     });
 
     Object.entries(newData.temperature).forEach(([sensorId, sensorDetails]) =>{
@@ -59,7 +62,15 @@ const Dashboard = () => {
     });
     setTempChartData((prevData) => {
       const updated = [...prevData, newTempEntry];
-      return updated.slice(-60);
+      return updated.slice(-100);
+    });
+
+    Object.entries(newData.pressure).forEach(([sensorId, sensorDetails]) =>{
+      newPressureEntry[sensorId] = sensorDetails.reading;
+    });
+    setPressureChartData((prevData) => {
+      const updated = [...prevData, newPressureEntry];
+      return updated.slice(-100);
     });
     /*
     Object.entries(newData).forEach(([sensorId, sensorDetails]) => {
@@ -85,7 +96,7 @@ const Dashboard = () => {
     });
 
     return () => unsubscribe(); // Clean up listener on unmount
-  }, [data]);
+  }, []);
 
   return (
     <div>
@@ -174,6 +185,23 @@ const Dashboard = () => {
           <Tooltip />
           <Legend />
           {Object.keys(data.temperature).map((sensorId,index) => (
+            <Line
+              key={sensorId}
+              type="monotone"
+              dataKey={sensorId}
+              stroke={COLORS[index % COLORS.length]} // random color
+              dot={false}
+            />
+          ))}
+        </LineChart>
+        <h3>Pressure</h3>
+        <LineChart width={600} height={300} data={pressureChartData}>
+          <CartesianGrid stroke="#ccc" />
+          <XAxis dataKey="name" />
+          <YAxis />
+          <Tooltip />
+          <Legend />
+          {Object.keys(data.pressure).map((sensorId,index) => (
             <Line
               key={sensorId}
               type="monotone"
