@@ -25,8 +25,8 @@ TaskHandle_t monitorSensorsHandle = NULL;
 TaskHandle_t controlPH01Handle = NULL;
 TaskHandle_t controlPH02Handle = NULL;
 Ezo_board pG01Sensor = Ezo_board(PG01_SENSOR_ADDRESS, "pG01");
-Ezo_board pHSensor_adjustment = Ezo_board(PH_SENSOR_ADDRESS_ADJUSTMENT, "pH_adj");
-#define DOSING_PUMP_ADDRESS_1 0x38  // Example address for Tank 1 dosing pump
+Ezo_board pHSensor_adjustment = Ezo_board(PH_SENSOR_ADDRESS_ADJUSTMENT, "PH_ADJ");
+#define DOSING_PUMP_ADDRESS_1 0x39  // Example address for Tank 1 dosing pump
 Ezo_board dosingPumpTank01 = Ezo_board(DOSING_PUMP_ADDRESS_1, "PMP1");
 /* Using core 1 of ESP32 */
 #if CONFIG_FREERTOS_UNICORE
@@ -56,11 +56,11 @@ void setup(){
   Serial.print(WiFi.localIP());
   initFirebase(DATABASE_URL);
 
-  //Serial2.print("I2C,103");
-  //Serial2.print('\r');
+  Serial2.print("I2C,114");
+  Serial2.print('\r');
   Serial.println("Firebase is ready");
   //xTaskCreatePinnedToCore(controlPH01,"PH01 Control", 6048,NULL,2, &controlPH01Handle, app_cpu);
-  //xTaskCreatePinnedToCore(controlPH02,"PH02 Control", 6048,NULL,2, &controlPH02Handle, app_cpu);
+  xTaskCreatePinnedToCore(phControl,"PH Control", 10000,NULL,2, &controlPH02Handle, app_cpu);
   xTaskCreatePinnedToCore(monitorSensors,"Monitor Sensors", 10000, NULL, 2,&monitorSensorsHandle, app_cpu);
   //pHSensor.send_cmd("Cal,clear");
   Serial.println("y");
@@ -70,8 +70,8 @@ void setup(){
 
 
 void loop() {
-  //Serial2.print("I2C,100");
-  //Serial2.print('\r');
+  Serial2.print("I2C,114");
+  Serial2.print('\r');
   /*
   pHSensor.send_read_cmd();
   vTaskDelay(1000 / portTICK_PERIOD_MS);

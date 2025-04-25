@@ -15,7 +15,7 @@ static const BaseType_t app_cpu = 1;
 const int PH_SENSOR_ADDRESS_TREATED = 103;
 const int PH_SENSOR_ADDRESS_EC1 = 101;
 const int PH_SENSOR_ADDRESS_EC2 = 100;
-const int PH_SENSOR_ADDRESS_HYDROLYSIS = 103;
+const int PH_SENSOR_ADDRESS_HYDROLYSIS = 99;
 
 const int COND_SENSOR_ADDRESS_EC1 = 112;
 const int COND_SENSOR_ADDRESS_EC2 = 105;
@@ -24,7 +24,7 @@ const int COND_SENSOR_ADDRESS_ADJUSTMENT = 113;
 //to be set
 const int DO_SENSOR_ADDRESS_HYDROLYSIS = 108;
 const int DO_SENSOR_ADDRESS_TREATED = 97;
-//const int TEMP_SENSOR_ADDRESS_T01 = 109;
+const int TEMP_SENSOR_ADDRESS_HYDROLYSIS = 109;
 //const int SENSOR_COUNT = 11;
 
 // pH Sensors
@@ -45,7 +45,7 @@ Ezo_board doSensor_hydrolysis = Ezo_board(DO_SENSOR_ADDRESS_HYDROLYSIS, "DO_HYD"
 Ezo_board doSensor_treated = Ezo_board(DO_SENSOR_ADDRESS_TREATED, "DO_TR");
 
 // Create instance for temperature sensor on Tank01.
-//Ezo_board tempSensor_Tank01 = Ezo_board(TEMP_SENSOR_ADDRESS_T01, "TEMP_T01");
+Ezo_board tempSensor_hydrolysis = Ezo_board(TEMP_SENSOR_ADDRESS_HYDROLYSIS, "TEMP_HYD");
 void monitorSensors(void* parameters) {
     // Set sensor read delay (in ticks). Currently set as 5000ms
     //Wire.begin();
@@ -75,7 +75,7 @@ void monitorSensors(void* parameters) {
         doSensor_treated.send_read_cmd();
 
         // Temperature sensor:
-        //tempSensor_Tank01.send_read_cmd();
+        tempSensor_hydrolysis.send_read_cmd();
 
         // Wait for sensors to process the command (might need to adjust)
         vTaskDelay(1000 / portTICK_PERIOD_MS);
@@ -98,7 +98,7 @@ void monitorSensors(void* parameters) {
         doSensor_treated.receive_read_cmd();
 
         // Temperature sensor:
-        //tempSensor_Tank01.receive_read_cmd();
+        tempSensor_hydrolysis.receive_read_cmd();
         
         // Retrieve sensor readings
         //float ph_t06    = pHSensor_Tank06.get_last_received_reading();
@@ -115,7 +115,7 @@ void monitorSensors(void* parameters) {
        float do_hyd    = doSensor_hydrolysis.get_last_received_reading();
         float do_tr    = doSensor_treated.get_last_received_reading();
 
-        //float temp_t01  = tempSensor_Tank01.get_last_received_reading();
+        float temp_t01  = tempSensor_hydrolysis.get_last_received_reading();
 
 
         // Read digital LLS sensors
@@ -161,7 +161,7 @@ void monitorSensors(void* parameters) {
         pushSensorReading("conductivity",condSensor_adjustment.get_name(), cond_adj);
         pushSensorReading("dissolved02",doSensor_hydrolysis.get_name(), do_hyd);
         pushSensorReading("dissolved02",doSensor_treated.get_name(), do_tr);
-        //pushSensorReading("temperature",tempSensor_Tank01.get_name(), rand());
+        pushSensorReading("temperature",tempSensor_hydrolysis.get_name(), temp_t01);
         vTaskDelay(sensorDelay);
     }
 }
