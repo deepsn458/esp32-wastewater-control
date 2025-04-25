@@ -9,15 +9,23 @@
 #include <Wire.h>
 #include <algorithm>
 
+//UART Serial Pins
+#define RXD2 16
+#define TXD2 17
+//sets up the serial port for RS485 Communication
+
 #define PRESSURE_LIMIT 100
+float pHVal = 0;
+int same_read_count = 0;
 const int PG01_SENSOR_ADDRESS = 114;
+const int PH_SENSOR_ADDRESS_ADJUSTMENT = 99;
 const int LLS04LowPin = 14;
 const int LLS04HighPin = 35;
 TaskHandle_t monitorSensorsHandle = NULL;
 TaskHandle_t controlPH01Handle = NULL;
 TaskHandle_t controlPH02Handle = NULL;
 Ezo_board pG01Sensor = Ezo_board(PG01_SENSOR_ADDRESS, "pG01");
-Ezo_board pHSensor = Ezo_board(99, "pH02");
+Ezo_board pHSensor_adjustment = Ezo_board(PH_SENSOR_ADDRESS_ADJUSTMENT, "pH_adj");
 #define DOSING_PUMP_ADDRESS_1 0x38  // Example address for Tank 1 dosing pump
 Ezo_board dosingPumpTank01 = Ezo_board(DOSING_PUMP_ADDRESS_1, "PMP1");
 /* Using core 1 of ESP32 */
@@ -33,10 +41,12 @@ void phControl(void* params);
 const char* DATABASE_URL = "https://waste-water-control-default-rtdb.firebaseio.com/";
 
 void setup(){
+
   pinMode(LLS04HighPin, INPUT_PULLUP);
   pinMode(LLS04LowPin, INPUT_PULLUP);
   Wire.begin();
   Serial.begin(115200);
+  Serial2.begin(9600, SERIAL_8N1, RXD2, TXD2);
   WiFi.mode(WIFI_STA);
   WiFi.begin(WIFI_SSID);
   while (WiFi.status() != WL_CONNECTED) {
@@ -45,34 +55,67 @@ void setup(){
   }
   Serial.print(WiFi.localIP());
   initFirebase(DATABASE_URL);
+
+  //Serial2.print("I2C,103");
+  //Serial2.print('\r');
   Serial.println("Firebase is ready");
   //xTaskCreatePinnedToCore(controlPH01,"PH01 Control", 6048,NULL,2, &controlPH01Handle, app_cpu);
   //xTaskCreatePinnedToCore(controlPH02,"PH02 Control", 6048,NULL,2, &controlPH02Handle, app_cpu);
-  xTaskCreatePinnedToCore(monitorSensors,"Monitor Sensors", 8048, NULL, 2,&monitorSensorsHandle, app_cpu);
+  xTaskCreatePinnedToCore(monitorSensors,"Monitor Sensors", 10000, NULL, 2,&monitorSensorsHandle, app_cpu);
+  //pHSensor.send_cmd("Cal,clear");
+  Serial.println("y");
+
 }
 
 
 
 void loop() {
+  //Serial2.print("I2C,100");
+  //Serial2.print('\r');
+  /*
+  pHSensor.send_read_cmd();
+  vTaskDelay(1000 / portTICK_PERIOD_MS);
+  // Assume get_reading() returns a String with the sensor's response.
+  pHSensor.receive_read_cmd();
+  Serial.println(pHSensor.get_last_received_reading());
+  if (pHVal - (float)pHSensor.get_last_received_reading()<100){
+    same_read_count++;
+  }
+  else{
+    same_read_count = 0;
+  }
+  pHVal = pHSensor.get_last_received_reading();
+  if (same_read_count == 3){
+    pHSensor.send_cmd("Cal,84");
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
+    pHSensor.send_cmd("Cal,?");
+    vTaskDelay(300 / portTICK_PERIOD_MS);
+    char cal[15];
+    pHSensor.receive_cmd(cal,15);
+    Serial.println(cal);
+
+  }
+  */
   // Keep Firebase tasks running
   fireBaseLoop();
-  //pushSensorReading("Pressure", "PG02",89);
+  //pushSensorReading("pressure", "PG01",89);
   //pushSensorReading("PH",pHSensor.get_name(), pHSensor.get_last_received_reading());
   delay(100); // minor delay
+  
 }
 
 void phControl(void* params){
  
   TickType_t lastDoseTick = 0;
   for (;;){
-    pHSensor.send_read_cmd();
+    pHSensor_adjustment.send_read_cmd();
     vTaskDelay(1000/portTICK_PERIOD_MS);
-    pHSensor.receive_read_cmd();
-    float pHReading = pHSensor.get_last_received_reading();
+    pHSensor_adjustment.receive_read_cmd();
+    float pHReading = pHSensor_adjustment.get_last_received_reading();
     uint32_t dosingDelaySeconds = max(30.0,(120-(pHReading-7.5)*60));
     TickType_t dosingDelayTicks = pdMS_TO_TICKS(dosingDelaySeconds*1000);
     Serial.println(pHReading);
-    pushSensorReading("PH",pHSensor.get_name(), pHSensor.get_last_received_reading());
+    pushSensorReading("ph",pHSensor_adjustment.get_name(), pHSensor_adjustment.get_last_received_reading());
   if (pHReading > 7.5){
     Serial.println(xTaskGetTickCount() - lastDoseTick);
     if ((xTaskGetTickCount() - lastDoseTick) >= dosingDelayTicks) {

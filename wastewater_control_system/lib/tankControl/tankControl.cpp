@@ -13,7 +13,7 @@ static const BaseType_t app_cpu = 1;
 #define DOSING_PUMP_ADDRESS_1 0x38  // Example address for Tank 1 dosing pump
 #define DOSING_PUMP_ADDRESS_2 0x39  // Example address for Tank 2 dosing pump
 #define PH_SENSOR_ADDRESS_1   0x65  // Example address for Tank 1 pH sensor
-#define PH_SENSOR_ADDRESS_2   0x63  // Example address for Tank 2 pH sensor
+#define PH_SENSOR_ADDRESS_2   0x66  // Example address for Tank 2 pH sensor
 
 // Liquid Level Sensor (LLS) Pins
 #define LLS_LOW_PIN       2  // Tank 1 low level sensor pin

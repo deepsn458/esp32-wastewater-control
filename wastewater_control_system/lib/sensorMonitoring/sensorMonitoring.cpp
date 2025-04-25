@@ -11,40 +11,44 @@ static const BaseType_t app_cpu = 0;
 static const BaseType_t app_cpu = 1;
 #endif
 
-const int PH_SENSOR_ADDRESS_T06 = 100;
-const int PH_SENSOR_ADDRESS_T07 = 102;
-const int PH_SENSOR_ADDRESS_EC1 = 103;//not yet set
-const int PH_SENSOR_ADDRESS_EC2 = 104;//not yet set
-const int COND_SENSOR_ADDRESS_EC1 = 105;
-const int COND_SENSOR_ADDRESS_EC2 = 106;
-const int COND_SENSOR_ADDRESS_T7 = 110;
-const int COND_SENSOR_ADDRESS_T2 = 111;
-const int DO_SENSOR_ADDRESS_T01 = 107;
-const int DO_SENSOR_ADDRESS_T07 = 108;
-const int TEMP_SENSOR_ADDRESS_T01 = 109;
-const int SENSOR_COUNT = 11;
+//const int PH_SENSOR_ADDRESS_T06 = 100;
+const int PH_SENSOR_ADDRESS_TREATED = 103;
+const int PH_SENSOR_ADDRESS_EC1 = 101;
+const int PH_SENSOR_ADDRESS_EC2 = 100;
+const int PH_SENSOR_ADDRESS_HYDROLYSIS = 103;
+
+const int COND_SENSOR_ADDRESS_EC1 = 112;
+const int COND_SENSOR_ADDRESS_EC2 = 105;
+const int COND_SENSOR_ADDRESS_TREATED = 106;
+const int COND_SENSOR_ADDRESS_ADJUSTMENT = 113;
+//to be set
+const int DO_SENSOR_ADDRESS_HYDROLYSIS = 108;
+const int DO_SENSOR_ADDRESS_TREATED = 97;
+//const int TEMP_SENSOR_ADDRESS_T01 = 109;
+//const int SENSOR_COUNT = 11;
 
 // pH Sensors
-Ezo_board pHSensor_Tank06 = Ezo_board(PH_SENSOR_ADDRESS_T06, "PH_T06");
-Ezo_board pHSensor_Tank07 = Ezo_board(PH_SENSOR_ADDRESS_T07, "PH_T07");
-Ezo_board pHSensor_EC1    = Ezo_board(PH_SENSOR_ADDRESS_EC1,   "PH_EC1");
-Ezo_board pHSensor_EC2    = Ezo_board(PH_SENSOR_ADDRESS_EC2,   "PH_EC2");
+//Ezo_board pHSensor_Tank06 = Ezo_board(PH_SENSOR_ADDRESS_T06, "PH_T06");
+Ezo_board pHSensor_treated = Ezo_board(PH_SENSOR_ADDRESS_TREATED, "PH_TR");
+Ezo_board pHSensor_EC1    = Ezo_board(PH_SENSOR_ADDRESS_EC1,   "PH_ED1");
+Ezo_board pHSensor_EC2    = Ezo_board(PH_SENSOR_ADDRESS_EC2,   "PH_ED2");
+Ezo_board pHSensor_hydrolysis = Ezo_board(PH_SENSOR_ADDRESS_HYDROLYSIS, "PH_HYD");
 
 // Conductivity Sensors
-Ezo_board condSensor_EC1  = Ezo_board(COND_SENSOR_ADDRESS_EC1, "COND_EC1");
-Ezo_board condSensor_EC2  = Ezo_board(COND_SENSOR_ADDRESS_EC2, "COND_EC2");
-Ezo_board condSensor_Tank7 = Ezo_board(COND_SENSOR_ADDRESS_T7, "COND_T7");
-Ezo_board condSensor_Tank2 = Ezo_board(COND_SENSOR_ADDRESS_T2, "COND_T2");
+Ezo_board condSensor_EC1  = Ezo_board(COND_SENSOR_ADDRESS_EC1, "COND_ED1");
+Ezo_board condSensor_EC2  = Ezo_board(COND_SENSOR_ADDRESS_EC2, "COND_ED2");
+Ezo_board condSensor_treated = Ezo_board(COND_SENSOR_ADDRESS_TREATED, "COND_TR");
+Ezo_board condSensor_adjustment = Ezo_board(COND_SENSOR_ADDRESS_ADJUSTMENT, "COND_ADJ");
 
 // Dissolved Oxygen Sensors
-Ezo_board doSensor_Tank01 = Ezo_board(DO_SENSOR_ADDRESS_T01, "DO_T01");
-Ezo_board doSensor_Tank07 = Ezo_board(DO_SENSOR_ADDRESS_T07, "DO_T07");
+Ezo_board doSensor_hydrolysis = Ezo_board(DO_SENSOR_ADDRESS_HYDROLYSIS, "DO_HYD");
+Ezo_board doSensor_treated = Ezo_board(DO_SENSOR_ADDRESS_TREATED, "DO_TR");
 
 // Create instance for temperature sensor on Tank01.
-Ezo_board tempSensor_Tank01 = Ezo_board(TEMP_SENSOR_ADDRESS_T01, "TEMP_T01");
+//Ezo_board tempSensor_Tank01 = Ezo_board(TEMP_SENSOR_ADDRESS_T01, "TEMP_T01");
 void monitorSensors(void* parameters) {
     // Set sensor read delay (in ticks). Currently set as 5000ms
-    Wire.begin();
+    //Wire.begin();
     srand(11);
     const TickType_t sensorDelay = pdMS_TO_TICKS(5000UL);
 
@@ -52,57 +56,64 @@ void monitorSensors(void* parameters) {
         // Issue read commands to all EZO sensors
 
         // pH sensors:
-        pHSensor_Tank06.send_read_cmd();
-       // pHSensor_Tank07.send_read_cmd();
-        //pHSensor_EC1.send_read_cmd();
-        //pHSensor_EC2.send_read_cmd();
+        //pHSensor_Tank06.send_read_cmd();
+        
+        pHSensor_treated.send_read_cmd();
+        pHSensor_EC1.send_read_cmd();
+        pHSensor_EC2.send_read_cmd();
+        pHSensor_hydrolysis.send_read_cmd();
 
         // Conductivity sensors:
-       // condSensor_EC1.send_read_cmd();
-        condSensor_EC2.send_read_cmd();
-       // condSensor_Tank7.send_read_cmd();
-        //condSensor_Tank2.send_read_cmd();
+    condSensor_EC1.send_read_cmd();
+    condSensor_EC2.send_read_cmd();
+    condSensor_treated.send_read_cmd();
+    condSensor_adjustment.send_read_cmd();
 
         // Dissolved Oxygen sensors:
-        //doSensor_Tank01.send_read_cmd();
-        doSensor_Tank07.send_read_cmd();
+        doSensor_hydrolysis.send_read_cmd();
+        
+        doSensor_treated.send_read_cmd();
 
         // Temperature sensor:
-        tempSensor_Tank01.send_read_cmd();
+        //tempSensor_Tank01.send_read_cmd();
 
         // Wait for sensors to process the command (might need to adjust)
         vTaskDelay(1000 / portTICK_PERIOD_MS);
-        pHSensor_Tank06.receive_read_cmd();
-       // pHSensor_Tank07.receive_read_cmd();
-        //pHSensor_EC1.receive_read_cmd();
-        //pHSensor_EC2.receive_read_cmd();
+        
+        //pHSensor_Tank06.receive_read_cmd();
+        pHSensor_treated.receive_read_cmd();
+        pHSensor_EC1.receive_read_cmd();
+        pHSensor_EC2.receive_read_cmd();
+        pHSensor_hydrolysis.receive_read_cmd();
 
         // Conductivity sensors:
-        //condSensor_EC1.receive_read_cmd();
+        condSensor_EC1.receive_read_cmd();
         condSensor_EC2.receive_read_cmd();
-        //condSensor_Tank7.receive_read_cmd();
-        //condSensor_Tank2.receive_read_cmd();
+        condSensor_treated.receive_read_cmd();
+        condSensor_adjustment.receive_read_cmd();
 
         // Dissolved Oxygen sensors:
-        //doSensor_Tank01.receive_read_cmd();
-        doSensor_Tank07.receive_read_cmd();
+        doSensor_hydrolysis.receive_read_cmd();
+        
+        doSensor_treated.receive_read_cmd();
 
         // Temperature sensor:
-        tempSensor_Tank01.receive_read_cmd();
+        //tempSensor_Tank01.receive_read_cmd();
         
         // Retrieve sensor readings
         //float ph_t06    = pHSensor_Tank06.get_last_received_reading();
-        //float ph_t07    = pHSensor_Tank07.get_last_received_reading();
-        //float ph_ec1    = pHSensor_EC1.get_last_received_reading();
-        //float ph_ec2    = pHSensor_EC2.get_last_received_reading();
+        float ph_tr    = pHSensor_treated.get_last_received_reading();
+        float ph_ec1    = pHSensor_EC1.get_last_received_reading();
+        float ph_ec2    = pHSensor_EC2.get_last_received_reading();
+        float ph_hyd = pHSensor_hydrolysis.get_last_received_reading();
 
-       // float cond_ec1  = condSensor_EC1.get_last_received_reading();
-        //float cond_ec2  = condSensor_EC2.get_last_received_reading();
-        //float cond_t7   = condSensor_Tank7.get_last_received_reading();
-       // float cond_t2   = condSensor_Tank2.get_last_received_reading();
+        float cond_ec1  = condSensor_EC1.get_last_received_reading();
+        float cond_ec2  = condSensor_EC2.get_last_received_reading();
+        float cond_tr   = condSensor_treated.get_last_received_reading();
+        float cond_adj   = condSensor_adjustment.get_last_received_reading();
 
-       // float do_t01    = doSensor_Tank01.get_last_received_reading();
-        //float do_t07    = doSensor_Tank07.get_last_received_reading();
+       float do_hyd    = doSensor_hydrolysis.get_last_received_reading();
+        float do_tr    = doSensor_treated.get_last_received_reading();
 
         //float temp_t01  = tempSensor_Tank01.get_last_received_reading();
 
@@ -139,17 +150,18 @@ void monitorSensors(void* parameters) {
         Serial.print("Temp_T01,"); Serial.print(temp_t01_arr); Serial.print(",");
         */
         //sends all the sensor readings to the database
-        pushSensorReading("ph", pHSensor_Tank06.get_name(), rand());
-        //pushSensorReading("ph", pHSensor_Tank07.get_name(), ph_t07);
-        //pushSensorReading("ph", pHSensor_EC1.get_name(), ph_ec1);
-        //pushSensorReading("ph", pHSensor_EC2.get_name(), ph_ec2);
-        //pushSensorReading("conductivity", condSensor_EC1.get_name(), cond_ec1);
-        pushSensorReading("conductivity",condSensor_EC2.get_name(), rand());
-       // pushSensorReading("conductivity",condSensor_Tank7.get_name(), cond_t7);
-        //pushSensorReading("conductivity",condSensor_Tank2.get_name(), cond_t2);
-        //pushSensorReading("dissolved02",doSensor_Tank01.get_name(), do_t01);
-        pushSensorReading("dissolved02",doSensor_Tank07.get_name(), rand());
-        pushSensorReading("temperature",tempSensor_Tank01.get_name(), rand());
+        //pushSensorReading("ph", pHSensor_Tank06.get_name(), rand());
+        pushSensorReading("ph", pHSensor_treated.get_name(), ph_tr);
+        pushSensorReading("ph", pHSensor_EC1.get_name(), ph_ec1);
+        pushSensorReading("ph", pHSensor_EC2.get_name(), ph_ec2);
+        pushSensorReading("ph", pHSensor_hydrolysis.get_name(),ph_hyd);
+        pushSensorReading("conductivity", condSensor_EC1.get_name(), cond_ec1);
+        pushSensorReading("conductivity",condSensor_EC2.get_name(), cond_ec2);
+        pushSensorReading("conductivity",condSensor_treated.get_name(), cond_tr);
+        pushSensorReading("conductivity",condSensor_adjustment.get_name(), cond_adj);
+        pushSensorReading("dissolved02",doSensor_hydrolysis.get_name(), do_hyd);
+        pushSensorReading("dissolved02",doSensor_treated.get_name(), do_tr);
+        //pushSensorReading("temperature",tempSensor_Tank01.get_name(), rand());
         vTaskDelay(sensorDelay);
     }
 }

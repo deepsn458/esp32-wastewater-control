@@ -17,13 +17,13 @@ const Dashboard = () => {
     conductivity: {},
     dissolved02: {},
     temperature: {},
-    pressure:{}
+    //pressure:{}
   });
   const [pHChartData, setpHChartData] = useState([]);
   const [tempChartData, setTempChartData] = useState([]);
   const [condChartData, setCondChartData] = useState([]);
   const [dOChartData, setDOChartData] = useState([]);
-  const [pressureChartData, setPressureChartData] = useState([]);
+  //const [pressureChartData, setPressureChartData] = useState([]);
 
   const updateChartData = (newData) => {
     const date = new Date();
@@ -31,7 +31,7 @@ const Dashboard = () => {
     const newTempEntry = { name: date.toLocaleTimeString() };
     const newCondEntry = { name: date.toLocaleTimeString() };
     const newDOEntry = { name: date.toLocaleTimeString() };
-    const newPressureEntry = { name: date.toLocaleTimeString() };
+    //const newPressureEntry = { name: date.toLocaleTimeString() };
     console.log(newData.ph)
     Object.entries(newData.ph).forEach(([sensorId, sensorDetails]) =>{
       newPHEntry[sensorId] = sensorDetails.reading;
@@ -64,14 +64,8 @@ const Dashboard = () => {
       const updated = [...prevData, newTempEntry];
       return updated.slice(-100);
     });
-
-    Object.entries(newData.pressure).forEach(([sensorId, sensorDetails]) =>{
-      newPressureEntry[sensorId] = sensorDetails.reading;
-    });
-    setPressureChartData((prevData) => {
-      const updated = [...prevData, newPressureEntry];
-      return updated.slice(-100);
-    });
+    
+    
     /*
     Object.entries(newData).forEach(([sensorId, sensorDetails]) => {
       newEntry[sensorId] = sensorDetails.reading;
@@ -185,23 +179,6 @@ const Dashboard = () => {
           <Tooltip />
           <Legend />
           {Object.keys(data.temperature).map((sensorId,index) => (
-            <Line
-              key={sensorId}
-              type="monotone"
-              dataKey={sensorId}
-              stroke={COLORS[index % COLORS.length]} // random color
-              dot={false}
-            />
-          ))}
-        </LineChart>
-        <h3>Pressure</h3>
-        <LineChart width={600} height={300} data={pressureChartData}>
-          <CartesianGrid stroke="#ccc" />
-          <XAxis dataKey="name" />
-          <YAxis />
-          <Tooltip />
-          <Legend />
-          {Object.keys(data.pressure).map((sensorId,index) => (
             <Line
               key={sensorId}
               type="monotone"
