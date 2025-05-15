@@ -18,7 +18,7 @@
 float pHVal = 0;
 int same_read_count = 0;
 const int PG01_SENSOR_ADDRESS = 114;
-const int PH_SENSOR_ADDRESS_ADJUSTMENT = 99;
+const int PH_SENSOR_ADDRESS_ADJUSTMENT = 102;
 const int LLS04LowPin = 14;
 const int LLS04HighPin = 35;
 TaskHandle_t monitorSensorsHandle = NULL;

@@ -23,7 +23,7 @@ const int COND_SENSOR_ADDRESS_TREATED = 106;
 const int COND_SENSOR_ADDRESS_ADJUSTMENT = 113;
 //to be set
 const int DO_SENSOR_ADDRESS_HYDROLYSIS = 108;
-const int DO_SENSOR_ADDRESS_TREATED = 97;
+const int DO_SENSOR_ADDRESS_TREATED = 114;
 const int TEMP_SENSOR_ADDRESS_HYDROLYSIS = 109;
 //const int SENSOR_COUNT = 11;
 
@@ -43,7 +43,7 @@ Ezo_board condSensor_adjustment = Ezo_board(COND_SENSOR_ADDRESS_ADJUSTMENT, "CON
 // Dissolved Oxygen Sensors
 Ezo_board doSensor_hydrolysis = Ezo_board(DO_SENSOR_ADDRESS_HYDROLYSIS, "DO_HYD");
 Ezo_board doSensor_treated = Ezo_board(DO_SENSOR_ADDRESS_TREATED, "DO_TR");
-
+Ezo_board press_1 = Ezo_board(11, "PRESS_TR");
 // Create instance for temperature sensor on Tank01.
 Ezo_board tempSensor_hydrolysis = Ezo_board(TEMP_SENSOR_ADDRESS_HYDROLYSIS, "TEMP_HYD");
 void monitorSensors(void* parameters) {
@@ -62,7 +62,7 @@ void monitorSensors(void* parameters) {
         pHSensor_EC1.send_read_cmd();
         pHSensor_EC2.send_read_cmd();
         pHSensor_hydrolysis.send_read_cmd();
-
+        press_1.send_read_cmd();
         // Conductivity sensors:
     condSensor_EC1.send_read_cmd();
     condSensor_EC2.send_read_cmd();
@@ -96,7 +96,7 @@ void monitorSensors(void* parameters) {
         doSensor_hydrolysis.receive_read_cmd();
         
         doSensor_treated.receive_read_cmd();
-
+        press_1.receive_read_cmd();
         // Temperature sensor:
         tempSensor_hydrolysis.receive_read_cmd();
         
@@ -162,6 +162,7 @@ void monitorSensors(void* parameters) {
         pushSensorReading("dissolved02",doSensor_hydrolysis.get_name(), do_hyd);
         pushSensorReading("dissolved02",doSensor_treated.get_name(), do_tr);
         pushSensorReading("temperature",tempSensor_hydrolysis.get_name(), temp_t01);
+        pushSensorReading("pressure",press_1.get_name(), press_1.get_last_received_reading());
         vTaskDelay(sensorDelay);
     }
 }
