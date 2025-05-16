@@ -15,10 +15,7 @@
 //sets up the serial port for RS485 Communication
 
 #define PRESSURE_LIMIT 100
-float pHVal = 0;
-float condVal = 0;
-int same_read_count = 0;
-int cal_count = 0;
+
 
 const int PG01_SENSOR_ADDRESS = 114;
 const int PH_SENSOR_ADDRESS_ADJUSTMENT = 102;
@@ -31,8 +28,8 @@ TaskHandle_t controlPH01Handle = NULL;
 TaskHandle_t controlPH02Handle = NULL;
 Ezo_board pG01Sensor = Ezo_board(PG01_SENSOR_ADDRESS, "pG01");
 Ezo_board pHSensor_adjustment = Ezo_board(PH_SENSOR_ADDRESS_ADJUSTMENT, "PH_ADJ");
-Ezo_board condEd2_sensor = Ezo_board(COND_ED2_SENSOR_ADDRESS, "COND_ED2");
-Ezo_board condEd1_sensor = Ezo_board(COND_ED1_SENSOR_ADDRESS, "COND_ED1");
+Ezo_board condSensorED2 = Ezo_board(COND_ED2_SENSOR_ADDRESS, "COND_ED2");
+Ezo_board condSensorED1 = Ezo_board(COND_ED1_SENSOR_ADDRESS, "COND_ED1");
 
 #define DOSING_PUMP_ADDRESS_1 0x39  // Example address for Tank 1 dosing pump
 Ezo_board dosingPumpTank01 = Ezo_board(DOSING_PUMP_ADDRESS_1, "PMP1");
@@ -44,6 +41,7 @@ static const BaseType_t app_cpu = 1;
 #endif
 
 void phControl(void* params);
+void calibrateSensors(Ezo_board sensorName, char* sensorType);
 #define WIFI_SSID "Rice Visitor"
 
 const char* DATABASE_URL = "https://waste-water-control-default-rtdb.firebaseio.com/";
@@ -66,61 +64,86 @@ void setup(){
 
 
 }
-
-
-
 void loop() {
+  /*USERS: ONLY EDIT THE LINE BELOW WITH THE NAME AND TYPE OF THE SENSOR*/
+  calibrateSensors(condSensorED2,"cond");
   
-  condEd2_sensor.send_read_cmd();
-  vTaskDelay(1000 / portTICK_PERIOD_MS);
-  condEd2_sensor.receive_read_cmd();
-  Serial.println(condEd2_sensor.get_last_received_reading());
-  /*
-  if (cal_count == 0){
-    condEd2_sensor.send_cmd("Cal,clear");
-  }
-  condEd2_sensor.send_read_cmd();
-  vTaskDelay(1000 / portTICK_PERIOD_MS);
-  // Assume get_reading() returns a String with the sensor's response.
-  condEd2_sensor.receive_read_cmd();
-  Serial.println(condEd2_sensor.get_last_received_reading());
-  if ((condVal - (float)condEd2_sensor.get_last_received_reading())<1.0){
-    same_read_count++;
-  }
-  else{
-    same_read_count = 0;
-  }
-  condVal = condEd2_sensor.get_last_received_reading();
-  Serial.println(condVal);
-  if (same_read_count == 5){
-    if (cal_count == 0){
-      Serial.println("dry cal");
-       condEd2_sensor.send_cmd("Cal,dry");
-       same_read_count = 0;
-    }
-    else if (cal_count == 1){
-      Serial.println("cal 84");
-      condEd2_sensor.send_cmd("Cal,84");
-      same_read_count = 0;
-    }
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
-    condEd2_sensor.send_cmd("Cal,?");
-    
-    vTaskDelay(300 / portTICK_PERIOD_MS);
-    char cal[15];
-    condEd2_sensor.receive_cmd(cal,15);
-    Serial.println(cal);
-    vTaskDelay(60000 / portTICK_PERIOD_MS);
-    cal_count++;
-  
-  }
-  */
+
+
   // Keep Firebase tasks running
   fireBaseLoop();
   //pushSensorReading("pressure", "PG01",89);
   //pushSensorReading("PH",pHSensor.get_name(), pHSensor.get_last_received_reading());
   delay(100); // minor delay
   
+}
+
+
+void calibrateSensors(Ezo_board sensorName, char* sensorType){
+  float pHVal = 0;
+  float condVal = 0;
+  int same_read_count = 0;
+  int cal_count = 0;
+
+  //Conductivity calibration
+  if (strcmp(sensorType,"cond") == 0){
+    while (true){
+      sensorName.send_read_cmd();
+      delay(1000);
+      sensorName.receive_read_cmd();
+      Serial.print("Last reading: ");
+      Serial.println(sensorName.get_last_received_reading());
+      
+      //performs a 3point calibration
+      if (cal_count == 0){
+        sensorName.send_cmd("Cal,clear");
+      }
+      sensorName.send_read_cmd();
+      delay(1000);
+
+      // Assume get_reading() returns a String with the sensor's response.
+      sensorName.receive_read_cmd();
+      Serial.print("Last reading: ");
+      Serial.println(sensorName.get_last_received_reading());
+      //waits for 5 consecutive readings to be within 1.0uS of each other
+      if ((condVal - (float)sensorName.get_last_received_reading())<1.0){
+        same_read_count++;
+      }
+      else{
+        same_read_count = 0;
+      }
+      condVal = sensorName.get_last_received_reading();
+      Serial.println(condVal);
+      if (same_read_count == 5){
+        if (cal_count == 0){
+          Serial.println("dry cal");
+          sensorName.send_cmd("Cal,dry");
+          same_read_count = 0;
+        }
+        else if (cal_count == 1){
+          Serial.println("cal,low,12880");
+          sensorName.send_cmd("Cal,low,12880");
+          same_read_count = 0;
+        }
+        else if (cal_count == 2){
+          Serial.println("cal,high,80000");
+          sensorName.send_cmd("Cal,high,80000");
+          same_read_count = 0;
+        }
+        delay(1000);
+        sensorName.send_cmd("Cal,?");
+        
+        delay(300);
+        char cal[15];
+        sensorName.receive_cmd(cal,15);
+        Serial.println(cal);
+        delay(60000);
+        cal_count++;
+      
+      }
+    }
+    
+  }
 }
 
 void phControl(void* params){
@@ -166,3 +189,5 @@ void monitorPG01(){
     Serial.println("PG01 is normal");
   }
 }
+
+
