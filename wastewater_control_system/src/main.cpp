@@ -66,7 +66,7 @@ void setup(){
 }
 void loop() {
   /*USERS: ONLY EDIT THE LINE BELOW WITH THE NAME AND TYPE OF THE SENSOR*/
-  calibrateSensors(condSensorED2,"cond");
+  calibrateSensors(condSensorED1,"cond");
   
 
 
@@ -113,7 +113,6 @@ void calibrateSensors(Ezo_board sensorName, char* sensorType){
         same_read_count = 0;
       }
       condVal = sensorName.get_last_received_reading();
-      Serial.println(condVal);
       if (same_read_count == 5){
         if (cal_count == 0){
           Serial.println("dry cal");
@@ -132,17 +131,77 @@ void calibrateSensors(Ezo_board sensorName, char* sensorType){
         }
         delay(1000);
         sensorName.send_cmd("Cal,?");
-        
         delay(300);
         char cal[15];
         sensorName.receive_cmd(cal,15);
         Serial.println(cal);
-        delay(60000);
+        if (cal_count < 2){
+          delay(60000);
+        }
+        
         cal_count++;
       
       }
     }
     
+  }
+  else if (strcmp(sensorType,"pH") == 0){
+    while(true){
+      sensorName.send_read_cmd();
+      delay(1000);
+      sensorName.receive_read_cmd();
+      Serial.print("Last reading: ");
+      Serial.println(sensorName.get_last_received_reading());
+      
+      //performs a 3point calibration
+      if (cal_count == 0){
+        sensorName.send_cmd("Cal,clear");
+      }
+      sensorName.send_read_cmd();
+      delay(1000);
+
+      // Assume get_reading() returns a String with the sensor's response.
+      sensorName.receive_read_cmd();
+      Serial.print("Last reading: ");
+      Serial.println(sensorName.get_last_received_reading());
+      //waits for 5 consecutive readings to be within 1.0uS of each other
+      if ((pHVal - (float)sensorName.get_last_received_reading())<1.0){
+        same_read_count++;
+      }
+      else{
+        same_read_count = 0;
+      }
+      pHVal = sensorName.get_last_received_reading();
+      if (same_read_count == 5){
+        if (cal_count == 0){
+          Serial.println("midpoint cal");
+          sensorName.send_cmd("Cal,mid,7");
+          same_read_count = 0;
+        }
+        else if (cal_count == 1){
+          Serial.println("cal,low,4");
+          sensorName.send_cmd("Cal,low,4");
+          same_read_count = 0;
+        }
+        else if (cal_count == 2){
+          Serial.println("cal,high,10");
+          sensorName.send_cmd("Cal,high,10");
+          same_read_count = 0;
+        }
+        delay(1000);
+        sensorName.send_cmd("Cal,?");
+        delay(300);
+        char cal[15];
+        sensorName.receive_cmd(cal,15);
+        Serial.println(cal);
+        if (cal_count < 2){
+          delay(120000);
+        }
+        
+        cal_count++;
+      
+      }
+    }
   }
 }
 
