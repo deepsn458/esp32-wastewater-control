@@ -21,6 +21,7 @@ const int PG01_SENSOR_ADDRESS = 114;
 const int PH_SENSOR_ADDRESS_ADJUSTMENT = 99;
 const int LLS04LowPin = 14;
 const int LLS04HighPin = 35;
+const int change = 2;
 TaskHandle_t monitorSensorsHandle = NULL;
 TaskHandle_t controlPH01Handle = NULL;
 TaskHandle_t controlPH02Handle = NULL;
