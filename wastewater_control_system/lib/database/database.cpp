@@ -3,7 +3,12 @@
 #include <WiFiClientSecure.h>
 #include <FirebaseClient.h>
 #include <ArduinoJson.h>
+#include <ctime>
+#include <iostream>
+#include <fstream>
 #include "database.h"
+
+using namespace std;
 
 // CREDENTIALS
 static const char* API_KEY       = "AIzaSyCRiDbuGOOqW_q_OKA_-zeCXVWCqW3gJe4";
@@ -28,6 +33,15 @@ WiFiClientSecure ssl_client1, ssl_client2;
 
 using AsyncClient = AsyncClientClass;
 AsyncClient async_client1(ssl_client1), async_client2(ssl_client2);
+
+void createCsv(){
+    time_t startTime = time(nullptr);
+    char formattedCsv[80];
+    tm* startTimeStamp = localtime(&startTime);
+    sprintf(formattedCsv,"data/%d-%d-%d_%d:%d.csv", startTimeStamp->tm_mon,startTimeStamp->tm_mon,
+    startTimeStamp->tm_year, startTimeStamp->tm_hour,startTimeStamp->tm_min);
+
+}
 void initFirebase(const char* databaseURL){
     // Skip certificate verification
     ssl_client1.setInsecure();
