@@ -57,22 +57,20 @@ void setup(){
   Serial.print(WiFi.localIP());
   initFirebase(DATABASE_URL);
 
-  Serial2.print("I2C,114");
-  Serial2.print('\r');
-  Serial.println("Firebase is ready");
+  //Serial2.print("I2C,114");
+  //Serial2.print('\r');
+  //Serial.println("Firebase is ready");
   //xTaskCreatePinnedToCore(controlPH01,"PH01 Control", 6048,NULL,2, &controlPH01Handle, app_cpu);
   xTaskCreatePinnedToCore(phControl,"PH Control", 10000,NULL,2, &controlPH02Handle, app_cpu);
   xTaskCreatePinnedToCore(monitorSensors,"Monitor Sensors", 10000, NULL, 2,&monitorSensorsHandle, app_cpu);
   //pHSensor.send_cmd("Cal,clear");
-  Serial.println("y");
-
 }
 
 
 
 void loop() {
-  Serial2.print("I2C,114");
-  Serial2.print('\r');
+  //Serial2.print("I2C,114");
+  //Serial2.print('\r');
   /*
   pHSensor.send_read_cmd();
   vTaskDelay(1000 / portTICK_PERIOD_MS);
