@@ -14,4 +14,5 @@ void pushSensorReading(const String &sensorType,const String &sensorId, float re
 void pushAlert(const String &alert);
 void fireBaseLoop();
 void createCsv();
+void deleteData();
 #endif

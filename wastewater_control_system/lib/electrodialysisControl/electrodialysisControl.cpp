@@ -201,6 +201,8 @@ int readLiquidLevel(int gpioPin){
 
 void checkVoltage(int psuID){
     //selects the appropriate serial port
+    char psuName[50];
+    sprintf(psuName,"DC_0%d",psuID);
     if (psuID == 1){
         digitalWrite(serialSelect1, 0);
         digitalWrite(serialSelect2,0);
@@ -225,10 +227,22 @@ void checkVoltage(int psuID){
     }
     i = 0;
     float voltage = atof(voltReading);
+    
+    pushSensorReading("voltage",psuName,voltage);
+    PSUSerial.print("CURRent?\r\n");
+    char currReading[10];
+    while (PSUSerial.available()>0){
+        currReading[i] = PSUSerial.read();
+        i++;
+    }
+    i = 0;
+    float current = atof(currReading);
+    pushSensorReading("current",psuName,current);
+    
     //either the system is on the verge of shutdown, or it has already been shutdown by
     //the PSU's OVP system
     if (voltage >= SHUTDOWN_VOLTAGE || voltage <= 0.0){
-        char* alert;
+        char alert[50];
         sprintf(alert, "DC 0%d Overvoltage condition",psuID);
         pushAlert(alert);
         Serial.println(alert);

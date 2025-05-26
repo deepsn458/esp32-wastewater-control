@@ -151,3 +151,10 @@ void pushAlert(const String &alert){
     return;
 }
 
+void deleteData(){
+    Database.remove(async_client2,"/esp32/devices/sensors/ph");
+    Database.remove(async_client2,"/esp32/devices/sensors/conductivity");
+    Database.remove(async_client2,"/esp32/devices/sensors/temperature");
+    Database.remove(async_client2,"/esp32/devices/sensors/dissolved02");
+}
+
