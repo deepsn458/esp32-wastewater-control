@@ -19,7 +19,7 @@
 TaskHandle_t monitorSensorsHandle = NULL;
 TaskHandle_t controlPH01Handle = NULL;
 TaskHandle_t controlPH02Handle = NULL;
-Ezo_board pHSensor_adjustment = Ezo_board(PH_SENSOR_ADDRESS_ADJUSTMENT, "PH_ADJ");
+Ezo_board pHSensor_adjustment = Ezo_board(102, "PH_ADJ");
 #define DOSING_PUMP_ADDRESS_1 0x39  // Example address for Tank 1 dosing pump
 Ezo_board dosingPumpTank01 = Ezo_board(DOSING_PUMP_ADDRESS_1, "PMP1");
 /* Using core 1 of ESP32 */

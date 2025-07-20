@@ -96,7 +96,7 @@ void startControlPress2(TimerHandle_t controlPress2Timer){
         xTaskCreatePinnedToCore (controlLLS05, "LLS05 Control", 1024, NULL, 1, 
             &controlLLS05Handle, app_cpu);
 }
-
+//runs the first experiment in the system
 void controlElectrodialysis(){
     pinMode(serialSelect1, OUTPUT);
     pinMode(serialSelect2, OUTPUT);
@@ -238,7 +238,7 @@ void checkVoltage(int psuID){
     i = 0;
     float current = atof(currReading);
     pushSensorReading("current",psuName,current);
-    
+
     //either the system is on the verge of shutdown, or it has already been shutdown by
     //the PSU's OVP system
     if (voltage >= SHUTDOWN_VOLTAGE || voltage <= 0.0){
@@ -246,8 +246,6 @@ void checkVoltage(int psuID){
         sprintf(alert, "DC 0%d Overvoltage condition",psuID);
         pushAlert(alert);
         Serial.println(alert);
-
-
     }
     Serial.println(voltReading);
     delay(1000);
