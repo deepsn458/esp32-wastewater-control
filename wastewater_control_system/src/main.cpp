@@ -19,18 +19,27 @@
 
 const int PG01_SENSOR_ADDRESS = 114;
 const int PH_SENSOR_ADDRESS_ADJUSTMENT = 102;
+const int PH_SENSOR_ADDRESS_TREATED = 103;
+const int PH_SENSOR_ADDRESS_ED1 = 101;
+const int PH_SENSOR_ADDRESS_ED2 = 100;
 const int COND_ED2_SENSOR_ADDRESS = 0x69;
+const int COND_SENSOR_ADDRESS_TREATED = 106;
 const int COND_ED1_SENSOR_ADDRESS = 0x70;
+const int COND_SENSOR_ADDRESS_ADJUSTMENT = 113;
 const int LLS04LowPin = 14;
 const int LLS04HighPin = 35;
 TaskHandle_t monitorSensorsHandle = NULL;
 TaskHandle_t controlPH01Handle = NULL;
 TaskHandle_t controlPH02Handle = NULL;
 Ezo_board pG01Sensor = Ezo_board(PG01_SENSOR_ADDRESS, "pG01");
-Ezo_board pHSensor_adjustment = Ezo_board(PH_SENSOR_ADDRESS_ADJUSTMENT, "PH_ADJ");
+Ezo_board pHSensorAdjustment = Ezo_board(PH_SENSOR_ADDRESS_ADJUSTMENT, "PH_ADJ");
+Ezo_board pHSensorTreated = Ezo_board(PH_SENSOR_ADDRESS_TREATED, "PH_TR");
+Ezo_board pHSensorED1 = Ezo_board(PH_SENSOR_ADDRESS_ED1, "PH_ED1");
+Ezo_board pHSensorED2 = Ezo_board(PH_SENSOR_ADDRESS_ED2, "PH_ED2");
 Ezo_board condSensorED2 = Ezo_board(COND_ED2_SENSOR_ADDRESS, "COND_ED2");
 Ezo_board condSensorED1 = Ezo_board(COND_ED1_SENSOR_ADDRESS, "COND_ED1");
-
+Ezo_board condSensorTreated = Ezo_board(COND_SENSOR_ADDRESS_TREATED, "COND_TR");
+Ezo_board condSensorAdjustment = Ezo_board(COND_SENSOR_ADDRESS_ADJUSTMENT, "COND_ADJ");
 #define DOSING_PUMP_ADDRESS_1 0x39  // Example address for Tank 1 dosing pump
 Ezo_board dosingPumpTank01 = Ezo_board(DOSING_PUMP_ADDRESS_1, "PMP1");
 /* Using core 1 of ESP32 */
@@ -87,6 +96,9 @@ void calibrateSensors(Ezo_board sensorName, char* sensorType){
 
   //Conductivity calibration
   if (strcmp(sensorType,"cond") == 0){
+    //sensorName.send_cmd("Factory");
+    //delay(5000);
+    
     while (true){
       sensorName.send_read_cmd();
       delay(1000);
@@ -95,6 +107,7 @@ void calibrateSensors(Ezo_board sensorName, char* sensorType){
       Serial.println(sensorName.get_last_received_reading());
       
       //performs a 3point calibration
+      
       if (cal_count == 0){
         sensorName.send_cmd("Cal,clear");
       }
@@ -105,8 +118,9 @@ void calibrateSensors(Ezo_board sensorName, char* sensorType){
       sensorName.receive_read_cmd();
       Serial.print("Last reading: ");
       Serial.println(sensorName.get_last_received_reading());
+      
       //waits for 5 consecutive readings to be within 1.0uS of each other
-      if ((condVal - (float)sensorName.get_last_received_reading())<1.0){
+      if ((condVal - (float)sensorName.get_last_received_reading())<100.0){
         same_read_count++;
       }
       else{
@@ -136,16 +150,21 @@ void calibrateSensors(Ezo_board sensorName, char* sensorType){
         sensorName.receive_cmd(cal,15);
         Serial.println(cal);
         if (cal_count < 2){
-          delay(60000);
+          delay(90000);
         }
         
         cal_count++;
       
       }
+      
+      
     }
     
   }
   else if (strcmp(sensorType,"pH") == 0){
+    //sensorName.send_cmd("Factory");
+    //delay(5000);
+
     while(true){
       sensorName.send_read_cmd();
       delay(1000);
@@ -195,16 +214,17 @@ void calibrateSensors(Ezo_board sensorName, char* sensorType){
         sensorName.receive_cmd(cal,15);
         Serial.println(cal);
         if (cal_count < 2){
-          delay(120000);
+          delay(90000);
         }
         
         cal_count++;
       
       }
+      
     }
   }
 }
-
+/*
 void phControl(void* params){
  
   TickType_t lastDoseTick = 0;
@@ -249,4 +269,4 @@ void monitorPG01(){
   }
 }
 
-
+*/
