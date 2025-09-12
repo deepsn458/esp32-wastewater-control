@@ -46,8 +46,8 @@ void setup(){
   }
   Serial.print(WiFi.localIP());
   initFirebase(DATABASE_URL);
-  xTaskCreatePinnedToCore(phControl,"PH Control", 10000,NULL,2, &controlPH02Handle, app_cpu);
-  xTaskCreatePinnedToCore(monitorSensors,"Monitor Sensors", 10000, NULL, 2,&monitorSensorsHandle, app_cpu);
+  xTaskCreatePinnedToCore(phControl,"PH Control", 10000,NULL,3, &controlPH02Handle, app_cpu);
+  xTaskCreatePinnedToCore(monitorSensors,"Monitor Sensors", 10000, NULL, 1,&monitorSensorsHandle, app_cpu);
   
   //Cleans the database before each run
   deleteData();
@@ -76,6 +76,7 @@ void phControl(void* params){
     TickType_t dosingDelayTicks = pdMS_TO_TICKS(dosingDelaySeconds*1000);
     Serial.println(pHReading);
     pushSensorReading("ph",pHSensor_adjustment.get_name(), pHSensor_adjustment.get_last_received_reading());
+    vTaskDelay(3000/portTICK_PERIOD_MS);
   if (pHReading > 7.5){
     Serial.println(xTaskGetTickCount() - lastDoseTick);
     if ((xTaskGetTickCount() - lastDoseTick) >= dosingDelayTicks) {

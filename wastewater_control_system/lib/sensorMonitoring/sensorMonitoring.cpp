@@ -120,6 +120,7 @@ void monitorSensors(void* parameters) {
 
         //sends all the sensor readings to the database
         //pushSensorReading("ph", pHSensor_Tank06.get_name(), rand());
+        pushSensorReading("ph", pHSensor_hydrolysis.get_name(),ph_hyd);
         pushSensorReading("ph", pHSensor_treated.get_name(), ph_tr);
         pushSensorReading("ph", pHSensor_EC1.get_name(), ph_ec1);
         pushSensorReading("ph", pHSensor_EC2.get_name(), ph_ec2);
