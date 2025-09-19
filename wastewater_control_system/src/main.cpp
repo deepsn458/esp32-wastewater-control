@@ -26,6 +26,7 @@ const int COND_ED2_SENSOR_ADDRESS = 0x69;
 const int COND_SENSOR_ADDRESS_TREATED = 106;
 const int COND_ED1_SENSOR_ADDRESS = 0x70;
 const int COND_SENSOR_ADDRESS_ADJUSTMENT = 113;
+const int PH_SENSOR_ADDRESS_HYDROLYSIS = 99;
 const int LLS04LowPin = 14;
 const int LLS04HighPin = 35;
 TaskHandle_t monitorSensorsHandle = NULL;
@@ -33,6 +34,7 @@ TaskHandle_t controlPH01Handle = NULL;
 TaskHandle_t controlPH02Handle = NULL;
 Ezo_board pG01Sensor = Ezo_board(PG01_SENSOR_ADDRESS, "pG01");
 Ezo_board pHSensorAdjustment = Ezo_board(PH_SENSOR_ADDRESS_ADJUSTMENT, "PH_ADJ");
+Ezo_board pHSensorHydrolysis = Ezo_board(PH_SENSOR_ADDRESS_HYDROLYSIS,"PH_HYD");
 Ezo_board pHSensorTreated = Ezo_board(PH_SENSOR_ADDRESS_TREATED, "PH_TR");
 Ezo_board pHSensorED1 = Ezo_board(PH_SENSOR_ADDRESS_ED1, "PH_ED1");
 Ezo_board pHSensorED2 = Ezo_board(PH_SENSOR_ADDRESS_ED2, "PH_ED2");
@@ -75,7 +77,7 @@ void setup(){
 }
 void loop() {
   /*USERS: ONLY EDIT THE LINE BELOW WITH THE NAME AND TYPE OF THE SENSOR*/
-  calibrateSensors(condSensorED1,"cond");
+  calibrateSensors(pHSensorHydrolysis,"pH");
   
 
 
@@ -171,7 +173,7 @@ void calibrateSensors(Ezo_board sensorName, char* sensorType){
       sensorName.receive_read_cmd();
       Serial.print("Last reading: ");
       Serial.println(sensorName.get_last_received_reading());
-      
+      /*
       //performs a 3point calibration
       if (cal_count == 0){
         sensorName.send_cmd("Cal,clear");
@@ -220,7 +222,7 @@ void calibrateSensors(Ezo_board sensorName, char* sensorType){
         cal_count++;
       
       }
-      
+      */
     }
   }
 }
