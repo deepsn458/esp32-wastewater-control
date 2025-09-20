@@ -21,8 +21,8 @@ const int PG01_SENSOR_ADDRESS = 114;
 const int PH_SENSOR_ADDRESS_ADJUSTMENT = 102;
 const int PH_SENSOR_ADDRESS_TREATED = 103;
 const int PH_SENSOR_ADDRESS_ED1 = 101;
-const int PH_SENSOR_ADDRESS_ED2 = 100;
-const int COND_ED2_SENSOR_ADDRESS = 0x69;
+const int PH_SENSOR_ADDRESS_ED2 = 105;
+const int COND_ED2_SENSOR_ADDRESS = 100;
 const int COND_SENSOR_ADDRESS_TREATED = 106;
 const int COND_ED1_SENSOR_ADDRESS = 0x70;
 const int COND_SENSOR_ADDRESS_ADJUSTMENT = 113;
@@ -77,7 +77,7 @@ void setup(){
 }
 void loop() {
   /*USERS: ONLY EDIT THE LINE BELOW WITH THE NAME AND TYPE OF THE SENSOR*/
-  calibrateSensors(pHSensorHydrolysis,"pH");
+  calibrateSensors(condSensorAdjustment,"cond");
   
 
 
@@ -109,7 +109,7 @@ void calibrateSensors(Ezo_board sensorName, char* sensorType){
       Serial.println(sensorName.get_last_received_reading());
       
       //performs a 3point calibration
-      
+      /*
       if (cal_count == 0){
         sensorName.send_cmd("Cal,clear");
       }
@@ -158,7 +158,7 @@ void calibrateSensors(Ezo_board sensorName, char* sensorType){
         cal_count++;
       
       }
-      
+      */
       
     }
     
