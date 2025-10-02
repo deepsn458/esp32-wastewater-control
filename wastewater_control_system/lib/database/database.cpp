@@ -23,7 +23,7 @@ const int maximumTaskCount = 20;
 //check if the task queue has been cleared
 bool clearedTasks = true;
 // The UserAuth object
-UserAuth user_auth(API_KEY, USER_EMAIL, USER_PASSWORD);
+FirebaseAuth user_auth(API_KEY, USER_EMAIL, USER_PASSWORD);
 
 // Global Firebase Objects
 FirebaseApp app;
