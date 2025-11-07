@@ -17,12 +17,14 @@ const Dashboard = () => {
     conductivity: {},
     dissolved02: {},
     temperature: {},
+    voltage: {}
     //pressure:{}
   });
   const [pHChartData, setpHChartData] = useState([]);
   const [tempChartData, setTempChartData] = useState([]);
   const [condChartData, setCondChartData] = useState([]);
   const [dOChartData, setDOChartData] = useState([]);
+  const [voltageChartData, setVoltageChartData] = useState([]);
   //const [pressureChartData, setPressureChartData] = useState([]);
 
   const updateChartData = (newData) => {
@@ -31,6 +33,7 @@ const Dashboard = () => {
     const newTempEntry = { name: date.toLocaleTimeString() };
     const newCondEntry = { name: date.toLocaleTimeString() };
     const newDOEntry = { name: date.toLocaleTimeString() };
+    const newVoltageEntry = {name: date.toLocaleTimeString()};
     //const newPressureEntry = { name: date.toLocaleTimeString() };
     console.log(newData.ph)
     Object.entries(newData.ph).forEach(([sensorId, sensorDetails]) =>{
@@ -62,6 +65,14 @@ const Dashboard = () => {
     });
     setTempChartData((prevData) => {
       const updated = [...prevData, newTempEntry];
+      return updated.slice(-100);
+    });
+    
+    Object.entries(newData.voltage).forEach(([sensorId, sensorDetails]) =>{
+      newVoltageEntry[sensorId] = sensorDetails.reading;
+    });
+    setVoltageChartData((prevData) => {
+      const updated = [...prevData, newVoltageEntry];
       return updated.slice(-100);
     });
     
@@ -112,6 +123,11 @@ const Dashboard = () => {
           </li>
         ))}
         {Object.entries(data.temperature).map(([sensorId, sensorDetails]) => (
+          <li key={sensorId}>
+            <strong>{sensorId}:</strong> Reading: {sensorDetails.reading}
+          </li>
+        ))}
+        {Object.entries(data.voltage).map(([sensorId, sensorDetails]) => (
           <li key={sensorId}>
             <strong>{sensorId}:</strong> Reading: {sensorDetails.reading}
           </li>

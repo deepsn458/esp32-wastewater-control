@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <WiFi.h>
-#include <FirebaseClient.h>
 #include "database.h"
+#include <FirebaseClient.h>
 #include <Ezo_i2c.h>
 #include "tankControl.h"
 #include "sensorMonitoring.h"
@@ -19,7 +19,7 @@
 //for serial port expander
 const int serialSelect1 = 32;
 const int serialSelect2 = 33;
-const int serialSelect3 = 34;
+const int serialSelect3 = 25;
 
 HardwareSerial PSUSerial(2);
 #define PRESSURE_LIMIT 100
@@ -60,7 +60,7 @@ void setup(){
   initFirebase(DATABASE_URL);
   xTaskCreatePinnedToCore(phControl,"PH Control", 10000,NULL,3, &controlPH02Handle, app_cpu);
   xTaskCreatePinnedToCore(monitorSensors,"Monitor Sensors", 10000, NULL, 1,&monitorSensorsHandle, app_cpu);
-  xTaskCreatePinnedToCore(monitorVoltage, "Monitor Voltage", 4096, NULL, 2, &monitorVoltageHandle, app_cpu);
+  xTaskCreatePinnedToCore(monitorVoltage, "Monitor Voltage", 10000, NULL, 2, &monitorVoltageHandle, app_cpu);
   //Cleans the database before each run
   deleteData();
 }
@@ -143,7 +143,7 @@ void checkVoltage(int psuID){
     }
     i = 0;
     float voltage = atof(voltReading);
-    
+    Serial.println(voltage);
     pushSensorReading("voltage",psuName,voltage);
     /*
     PSUSerial.print("CURRent?\r\n");

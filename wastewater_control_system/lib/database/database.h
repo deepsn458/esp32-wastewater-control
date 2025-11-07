@@ -1,5 +1,7 @@
 #ifndef DATABASE_H
 #define DATABASE_H
+#define ENABLE_DATABASE
+#define ENABLE_USER_AUTH
 #include <FirebaseClient.h>
 // Initialize Firebase once (in setup)
 void initFirebase(const char* databaseURL);

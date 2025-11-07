@@ -1,3 +1,4 @@
+#include "database.h"
 #include <Arduino.h>
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
@@ -6,7 +7,7 @@
 #include <ctime>
 #include <iostream>
 #include <fstream>
-#include "database.h"
+
 
 using namespace std;
 
@@ -23,7 +24,7 @@ const int maximumTaskCount = 20;
 //check if the task queue has been cleared
 bool clearedTasks = true;
 // The UserAuth object
-FirebaseAuth user_auth(API_KEY, USER_EMAIL, USER_PASSWORD);
+UserAuth user_auth(API_KEY, USER_EMAIL, USER_PASSWORD);
 
 // Global Firebase Objects
 FirebaseApp app;
