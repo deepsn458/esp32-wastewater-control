@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 (kicad_sch
 	(version 20250114)
 	(generator "eeschema")
@@ -54,3 +55,61 @@
 	)
 	(embedded_fonts no)
 )
+=======
+(kicad_sch
+	(version 20250114)
+	(generator "eeschema")
+	(generator_version "9.0")
+	(uuid "f3da2b22-f4ad-439a-b117-b98277f4753c")
+	(paper "A4")
+	(lib_symbols)
+	(sheet
+		(at 171.958 71.12)
+		(size 48.768 37.338)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 255 255 194 1.0000)
+		)
+		(uuid "6c71e863-c241-4517-9192-fb31c18e63d9")
+		(property "Sheetname" "mcu"
+			(at 171.958 70.4084 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "esp32s3.kicad_sch"
+			(at 171.958 109.0426 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "wastewater-control-pcb"
+				(path "/f3da2b22-f4ad-439a-b117-b98277f4753c"
+					(page "2")
+				)
+			)
+		)
+	)
+	(sheet_instances
+		(path "/"
+			(page "1")
+		)
+	)
+	(embedded_fonts no)
+)
+>>>>>>> 7cf0133ab48d5b79def00e396b6fa9ab043dfa50
